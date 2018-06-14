@@ -19,6 +19,7 @@ public class WorldController : MonoBehaviour {
                     GameObject cube = GameObject.Instantiate(block, pos, Quaternion.identity);
 
                     cube.name = x + "_" + y + "_" + z;
+                    cube.GetComponent<Renderer>().material = new Material(Shader.Find("Standard"));
                 }
                 yield return null;
             }
