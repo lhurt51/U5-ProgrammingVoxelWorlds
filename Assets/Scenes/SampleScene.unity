@@ -345,6 +345,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   blockMat: {fileID: 2100000, guid: ed8d22751eff48349ab92dbe7b681415, type: 2}
+  bType: 2
 --- !u!4 &1588913394
 Transform:
   m_ObjectHideFlags: 0
