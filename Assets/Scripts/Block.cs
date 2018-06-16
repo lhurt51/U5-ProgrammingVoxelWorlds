@@ -8,10 +8,10 @@ public class Block {
 
     public enum BlockType
     {
-        AIR,
         GRASS,
         DIRT,
-        STONE
+        STONE,
+        AIR
     };
 
     enum CubeSide
@@ -25,7 +25,7 @@ public class Block {
     };
 
     BlockType bType;
-    Material blockMat;
+    Chunk owner;
     GameObject parent;
     Vector3 pos;
 
@@ -41,12 +41,22 @@ public class Block {
         { new Vector2(0.0f, 0.875f), new Vector2(0.0625f, 0.875f), new Vector2(0.0f, 0.9375f), new Vector2(0.0625f, 0.9375f) }
     };
 
-    public Block(BlockType b, Vector3 pos, GameObject p, Material c)
+    bool HasSolidNeighbour(int x, int y, int z)
+    {
+        Block[,,] chunks = owner.chunkData;
+
+        try { return chunks[x, y, z].isSolid; }
+        catch (System.IndexOutOfRangeException ex) { if (ex != null) Debug.Log("Index: " + x + "_" + y + "_" + z + " is empty"); }
+
+        return false;
+    }
+
+    public Block(BlockType b, Vector3 pos, GameObject p, Chunk c)
     {
         bType = b;
-        parent = p;
         this.pos = pos;
-        blockMat = c;
+        parent = p;
+        owner = c;
         if (bType == BlockType.AIR) isSolid = false;
         else isSolid = true;
     }
@@ -144,16 +154,6 @@ public class Block {
         quad.transform.position = pos;
         meshFilter.mesh = mesh;
         // renderer.material = blockMat;
-    }
-
-    public bool HasSolidNeighbour(int x, int y, int z)
-    {
-        Block[,,] chunks = parent.GetComponent<Chunk>().chunkData;
-
-        try { return chunks[x, y, z].isSolid; }
-        catch (System.IndexOutOfRangeException ex) { if (ex != null) Debug.Log("Index: " + x + "_" + y + "_" + z + " is empty"); }
-
-        return false;
     }
 
     public void Draw()

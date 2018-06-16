@@ -2,49 +2,35 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Chunk : MonoBehaviour {
+public class Chunk {
 
     public Material cubeMat;
     public Block[,,] chunkData;
+    public GameObject chunk;
 
-    public IEnumerator BuildWorld(int sizeX, int sizeY, int sizeZ)
+    void BuildChunk()
     {
-        chunkData = new Block[sizeX, sizeY, sizeZ];
+        chunkData = new Block[World.chunkSize, World.chunkSize, World.chunkSize];
 
-        // Create blocks
-        for (int z = 0; z < sizeZ; z++)
+        for (int z = 0; z < World.chunkSize; z++)
         {
-            for (int y = 0; y < sizeY; y++)
+            for (int y = 0; y < World.chunkSize; y++)
             {
-                for (int x = 0; x < sizeX; x++)
+                for (int x = 0; x < World.chunkSize; x++)
                 {
                     Vector3 pos = new Vector3(x, y, z);
-                    if (Random.Range(0.0f, 100.0f) < 50.0f) chunkData[x, y, z] = new Block(Block.BlockType.DIRT, pos, this.gameObject, cubeMat);
-                    else chunkData[x, y, z] = new Block(Block.BlockType.AIR, pos, this.gameObject, cubeMat);
+                    if (Random.Range(0.0f, 100.0f) < 50.0f) chunkData[x, y, z] = new Block(Block.BlockType.DIRT, pos, chunk.gameObject, this);
+                    else chunkData[x, y, z] = new Block(Block.BlockType.AIR, pos, chunk.gameObject, this);
                 }
             }
         }
-
-        // Draw blocks
-        for (int z = 0; z < sizeZ; z++)
-        {
-            for (int y = 0; y < sizeY; y++)
-            {
-                for (int x = 0; x < sizeX; x++)
-                {
-                    chunkData[x, y, z].Draw();
-                }
-            }
-            yield return null;
-        }
-        CombineMeshes();
     }
 
     void CombineMeshes()
     {
         // Combine all children meshes
         int i = 0;
-        MeshFilter[] meshFilters = GetComponentsInChildren<MeshFilter>();
+        MeshFilter[] meshFilters = chunk.GetComponentsInChildren<MeshFilter>();
         CombineInstance[] combine = new CombineInstance[meshFilters.Length];
 
         while (i < meshFilters.Length)
@@ -54,9 +40,9 @@ public class Chunk : MonoBehaviour {
         }
 
         // Create a new mesh on the parent object
-        MeshFilter mf = (MeshFilter)this.gameObject.AddComponent(typeof(MeshFilter));
+        MeshFilter mf = (MeshFilter)chunk.gameObject.AddComponent(typeof(MeshFilter));
         // Create a renderer for the parent
-        MeshRenderer renderer = this.gameObject.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
+        MeshRenderer renderer = chunk.gameObject.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
 
         mf.mesh = new Mesh();
         // Add combined meshes on children as the parents mesh
@@ -65,12 +51,30 @@ public class Chunk : MonoBehaviour {
         renderer.material = cubeMat;
 
         // Delete all uncombined children
-        foreach (Transform quad in this.transform) Destroy(quad.gameObject);
+        foreach (Transform quad in chunk.transform) GameObject.Destroy(quad.gameObject);
     }
 
-    // Use this for initialization
-    void Start () {
-        int size = 16;
-        StartCoroutine(BuildWorld(size, size, size));
+    public void DrawChunk()
+    {
+        for (int z = 0; z < World.chunkSize; z++)
+        {
+            for (int y = 0; y < World.chunkSize; y++)
+            {
+                for (int x = 0; x < World.chunkSize; x++)
+                {
+                    chunkData[x, y, z].Draw();
+                }
+            }
+        }
+        CombineMeshes();
     }
+
+    public Chunk(Vector3 pos, Material c)
+    {
+        chunk = new GameObject(World.BuildChunkName(pos));
+        chunk.transform.position = pos;
+        cubeMat = c;
+        BuildChunk();
+    }
+
 }
