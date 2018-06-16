@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Block {
 
+    public bool isSolid;
+
     public enum BlockType
     {
         GRASS,
@@ -44,6 +46,7 @@ public class Block {
         parent = p;
         this.pos = pos;
         blockMat = c;
+        isSolid = true;
     }
 
     void CreateQuad(CubeSide side)
@@ -141,13 +144,29 @@ public class Block {
         renderer.material = blockMat;
     }
 
+    public bool HasSolidNeighbour(int x, int y, int z)
+    {
+        Block[,,] chunks = parent.GetComponent<Chunk>().chunkData;
+
+        try { return chunks[x, y, z].isSolid; }
+        catch (System.IndexOutOfRangeException ex) { if (ex != null) Debug.Log("Index: " + x + "_" + y + "_" + z + " is empty"); }
+
+        return false;
+    }
+
     public void Draw()
     {
-        CreateQuad(CubeSide.FRONT);
-        CreateQuad(CubeSide.BACK);
-        CreateQuad(CubeSide.TOP);
-        CreateQuad(CubeSide.BOTTOM);
-        CreateQuad(CubeSide.LEFT);
-        CreateQuad(CubeSide.RIGHT);
+        if (!HasSolidNeighbour((int)pos.x, (int)pos.y, (int)pos.z + 1))
+            CreateQuad(CubeSide.FRONT);
+        if (!HasSolidNeighbour((int)pos.x, (int)pos.y, (int)pos.z - 1))
+            CreateQuad(CubeSide.BACK);
+        if (!HasSolidNeighbour((int)pos.x, (int)pos.y + 1, (int)pos.z))
+            CreateQuad(CubeSide.TOP);
+        if (!HasSolidNeighbour((int)pos.x, (int)pos.y - 1, (int)pos.z))
+            CreateQuad(CubeSide.BOTTOM);
+        if (!HasSolidNeighbour((int)pos.x - 1, (int)pos.y, (int)pos.z))
+            CreateQuad(CubeSide.LEFT);
+        if (!HasSolidNeighbour((int)pos.x + 1, (int)pos.y, (int)pos.z))
+            CreateQuad(CubeSide.RIGHT);
     }
 }
