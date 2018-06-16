@@ -41,9 +41,31 @@ public class Block {
         { new Vector2(0.0f, 0.875f), new Vector2(0.0625f, 0.875f), new Vector2(0.0f, 0.9375f), new Vector2(0.0625f, 0.9375f) }
     };
 
+    int ConvertBlockIndexToLocal(int i)
+    {
+        if (i == -1) i = World.chunkSize - 1;
+        else if (i == World.chunkSize) i = 0;
+        return i;
+    }
+
     bool HasSolidNeighbour(int x, int y, int z)
     {
-        Block[,,] chunks = owner.chunkData;
+        Block[,,] chunks;
+
+        if (x < 0 || x >= World.chunkSize || y < 0 || y >= World.chunkSize || z < 0 || z >= World.chunkSize)
+        {
+            Chunk nChunk;
+            Vector3 neighbourChunkPos = this.parent.transform.position + new Vector3((x - (int)pos.x) * World.chunkSize, (y - (int)pos.y) * World.chunkSize, (z - (int)pos.z) * World.chunkSize);
+            string nName = World.BuildChunkName(neighbourChunkPos);
+
+            x = ConvertBlockIndexToLocal(x);
+            y = ConvertBlockIndexToLocal(y);
+            z = ConvertBlockIndexToLocal(z);
+
+            if (World.chunks.TryGetValue(nName, out nChunk)) chunks = nChunk.chunkData;
+            else return false;
+        }
+        else chunks = owner.chunkData;
 
         try { return chunks[x, y, z].isSolid; }
         catch (System.IndexOutOfRangeException ex) { if (ex != null) Debug.Log("Index: " + x + "_" + y + "_" + z + " is empty"); }
