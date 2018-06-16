@@ -19,7 +19,8 @@ public class Chunk : MonoBehaviour {
                 for (int x = 0; x < sizeX; x++)
                 {
                     Vector3 pos = new Vector3(x, y, z);
-                    chunkData[x, y, z] = new Block(Block.BlockType.DIRT, pos, this.gameObject, cubeMat);
+                    if (Random.Range(0.0f, 100.0f) < 50.0f) chunkData[x, y, z] = new Block(Block.BlockType.DIRT, pos, this.gameObject, cubeMat);
+                    else chunkData[x, y, z] = new Block(Block.BlockType.AIR, pos, this.gameObject, cubeMat);
                 }
             }
         }
@@ -32,9 +33,9 @@ public class Chunk : MonoBehaviour {
                 for (int x = 0; x < sizeX; x++)
                 {
                     chunkData[x, y, z].Draw();
-                    yield return null;
                 }
             }
+            yield return null;
         }
         CombineMeshes();
     }
@@ -69,6 +70,7 @@ public class Chunk : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        StartCoroutine(BuildWorld(4, 4, 4));
+        int size = 16;
+        StartCoroutine(BuildWorld(size, size, size));
     }
 }

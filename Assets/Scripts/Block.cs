@@ -8,6 +8,7 @@ public class Block {
 
     public enum BlockType
     {
+        AIR,
         GRASS,
         DIRT,
         STONE
@@ -46,7 +47,8 @@ public class Block {
         parent = p;
         this.pos = pos;
         blockMat = c;
-        isSolid = true;
+        if (bType == BlockType.AIR) isSolid = false;
+        else isSolid = true;
     }
 
     void CreateQuad(CubeSide side)
@@ -136,12 +138,12 @@ public class Block {
 
         GameObject quad = new GameObject("Quad");
         MeshFilter meshFilter = (MeshFilter)quad.AddComponent(typeof(MeshFilter));
-        MeshRenderer renderer = quad.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
+        // MeshRenderer renderer = quad.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
 
         quad.transform.parent = parent.transform;
         quad.transform.position = pos;
         meshFilter.mesh = mesh;
-        renderer.material = blockMat;
+        // renderer.material = blockMat;
     }
 
     public bool HasSolidNeighbour(int x, int y, int z)
@@ -156,6 +158,8 @@ public class Block {
 
     public void Draw()
     {
+        if (bType == BlockType.AIR) return;
+
         if (!HasSolidNeighbour((int)pos.x, (int)pos.y, (int)pos.z + 1))
             CreateQuad(CubeSide.FRONT);
         if (!HasSolidNeighbour((int)pos.x, (int)pos.y, (int)pos.z - 1))
