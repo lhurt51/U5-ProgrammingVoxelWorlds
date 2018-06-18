@@ -4,9 +4,16 @@ using UnityEngine;
 
 public class Chunk {
 
+    public enum ChunkStatus
+    {
+        DRAW,
+        DONE,
+        KEEP
+    };
     public Material cubeMat;
     public Block[,,] chunkData;
     public GameObject chunk;
+    public ChunkStatus status;
 
     void BuildChunk()
     {
@@ -37,6 +44,8 @@ public class Chunk {
                 }
             }
         }
+
+        status = ChunkStatus.DRAW;
     }
 
     void CombineMeshes()

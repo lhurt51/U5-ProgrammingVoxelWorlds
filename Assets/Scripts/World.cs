@@ -17,6 +17,9 @@ public class World : MonoBehaviour {
     public Slider loadingAmount;
     public Camera UICam;
 
+    bool firstBuild = true;
+    bool building = false;
+
     public static string BuildChunkName(Vector3 v)
     {
         return (int)v.x + "_" + (int)v.y + "_" + (int)v.z;
@@ -45,9 +48,10 @@ public class World : MonoBehaviour {
         int posX = (int)Mathf.Floor(player.transform.position.x / chunkSize);
         int posZ = (int)Mathf.Floor(player.transform.position.z / chunkSize);
 
-        float totalChunks = (Mathf.Pow(radius * 2 + 1, 2) * columnHeight) * 2;
+        float totalChunks = firstBuild ? (Mathf.Pow(radius * 2 + 1, 2) * columnHeight) * 2 : 0;
         int processCount = 0;
 
+        building = true;
         for (int z = -radius; z <= radius; z++)
         {
             for (int x =-radius; x <= radius; x++)
@@ -55,13 +59,26 @@ public class World : MonoBehaviour {
                 for (int y = 0; y < columnHeight; y++)
                 {
                     Vector3 cPos = new Vector3((x + posX) * chunkSize, y * chunkSize, (z + posZ) * chunkSize);
-                    Chunk c = new Chunk(cPos, textureAtlas);
+                    string n = BuildChunkName(cPos);
+                    Chunk c;
 
-                    c.chunk.transform.parent = this.transform;
-                    chunks.Add(c.chunk.name, c);
+                    if (chunks.TryGetValue(n, out c))
+                    {
+                        c.status = Chunk.ChunkStatus.KEEP;
+                        break;
+                    }
+                    else
+                    {
+                        c = new Chunk(cPos, textureAtlas);
+                        c.chunk.transform.parent = this.transform;
+                        chunks.Add(c.chunk.name, c);
+                    }
 
-                    processCount++;
-                    loadingAmount.value = processCount / totalChunks * 100;
+                    if (firstBuild)
+                    {
+                        processCount++;
+                        loadingAmount.value = processCount / totalChunks * 100;
+                    }
 
                     yield return null;
                 }
@@ -70,18 +87,34 @@ public class World : MonoBehaviour {
 
         foreach (KeyValuePair<string, Chunk> c in chunks)
         {
-            c.Value.DrawChunk();
+            if (c.Value.status == Chunk.ChunkStatus.DRAW)
+            {
+                c.Value.DrawChunk();
+                c.Value.status = Chunk.ChunkStatus.KEEP;
+            }
 
-            processCount++;
-            loadingAmount.value = processCount / totalChunks * 100;
+            // Delete chunks
+
+            c.Value.status = Chunk.ChunkStatus.DONE;
+
+            if (firstBuild)
+            {
+                processCount++;
+                loadingAmount.value = processCount / totalChunks * 100;
+            }
 
             yield return null;
         }
 
-        player.SetActive(true);
-        loadingAmount.gameObject.SetActive(false);
-        UICam.gameObject.SetActive(false);
-        playButton.gameObject.SetActive(false);
+        if (firstBuild)
+        {
+            player.SetActive(true);
+            loadingAmount.gameObject.SetActive(false);
+            UICam.gameObject.SetActive(false);
+            playButton.gameObject.SetActive(false);
+            firstBuild = false;
+        }
+        building = false;
     }
 
     public void StartBuild()
@@ -99,6 +132,6 @@ public class World : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		
+        if (!building && !firstBuild) StartCoroutine(BuildWorld());
 	}
 }
