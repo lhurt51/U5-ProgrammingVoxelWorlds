@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Realtime.Messaging.Internal;
 
 public class World : MonoBehaviour {
 
@@ -9,129 +10,80 @@ public class World : MonoBehaviour {
     public Material textureAtlas;
     public static int columnHeight = 16;
     public static int chunkSize = 16;
-    public static int worldSize = 4;
-    public static int radius = 1;
-    public static Dictionary<string, Chunk> chunks;
-
-    public Button playButton;
-    public Slider loadingAmount;
-    public Camera UICam;
+    public static int worldSize = 1;
+    public static int radius = 4;
+    public static ConcurrentDictionary<string, Chunk> chunks;
 
     bool firstBuild = true;
-    bool building = false;
 
     public static string BuildChunkName(Vector3 v)
     {
         return (int)v.x + "_" + (int)v.y + "_" + (int)v.z;
     }
 
-    IEnumerator BuildChunkColumn()
+    void BuildChunkAt(int x, int y, int z)
     {
-        for (int i = 0; i < columnHeight; i++)
-        {
-            Vector3 cPos = new Vector3(this.transform.position.x, i * chunkSize, this.transform.position.z);
-            Chunk c = new Chunk(cPos, textureAtlas);
+        Vector3 cPos = new Vector3(x * chunkSize, y * chunkSize, z * chunkSize);
+        string n = BuildChunkName(cPos);
+        Chunk c;
 
+        if (!chunks.TryGetValue(n, out c))
+        {
+            c = new Chunk(cPos, textureAtlas);
             c.chunk.transform.parent = this.transform;
-            chunks.Add(c.chunk.name, c);
-        }
-
-        foreach(KeyValuePair<string, Chunk> c in chunks)
-        {
-            c.Value.DrawChunk();
-            yield return null;
+            chunks.TryAdd(c.chunk.name, c);
         }
     }
 
-    IEnumerator BuildWorld()
+    IEnumerator BuildRecWorld(int x, int y, int z, int rad)
     {
-        int posX = (int)Mathf.Floor(player.transform.position.x / chunkSize);
-        int posZ = (int)Mathf.Floor(player.transform.position.z / chunkSize);
+        if (rad <= 0) yield break;
 
-        float totalChunks = firstBuild ? (Mathf.Pow(radius * 2 + 1, 2) * columnHeight) * 2 : 0;
-        int processCount = 0;
+        BuildChunkAt(x, y, z - 1);
+        StartCoroutine(BuildRecWorld(x, y, z - 1, --rad));
 
-        building = true;
-        for (int z = -radius; z <= radius; z++)
-        {
-            for (int x =-radius; x <= radius; x++)
-            {
-                for (int y = 0; y < columnHeight; y++)
-                {
-                    Vector3 cPos = new Vector3((x + posX) * chunkSize, y * chunkSize, (z + posZ) * chunkSize);
-                    string n = BuildChunkName(cPos);
-                    Chunk c;
+        yield return null;
+    }
 
-                    if (chunks.TryGetValue(n, out c))
-                    {
-                        c.status = Chunk.ChunkStatus.KEEP;
-                        break;
-                    }
-                    else
-                    {
-                        c = new Chunk(cPos, textureAtlas);
-                        c.chunk.transform.parent = this.transform;
-                        chunks.Add(c.chunk.name, c);
-                    }
-
-                    if (firstBuild)
-                    {
-                        processCount++;
-                        loadingAmount.value = processCount / totalChunks * 100;
-                    }
-
-                    yield return null;
-                }
-            }
-        }
-
+    IEnumerator DrawChunks()
+    {
         foreach (KeyValuePair<string, Chunk> c in chunks)
         {
-            if (c.Value.status == Chunk.ChunkStatus.DRAW)
-            {
-                c.Value.DrawChunk();
-                c.Value.status = Chunk.ChunkStatus.KEEP;
-            }
-
-            // Delete chunks
-
-            c.Value.status = Chunk.ChunkStatus.DONE;
-
-            if (firstBuild)
-            {
-                processCount++;
-                loadingAmount.value = processCount / totalChunks * 100;
-            }
-
+            if (c.Value.status == Chunk.ChunkStatus.DRAW) c.Value.DrawChunk();
             yield return null;
         }
-
-        if (firstBuild)
-        {
-            player.SetActive(true);
-            loadingAmount.gameObject.SetActive(false);
-            UICam.gameObject.SetActive(false);
-            playButton.gameObject.SetActive(false);
-            firstBuild = false;
-        }
-        building = false;
-    }
-
-    public void StartBuild()
-    {
-        StartCoroutine(BuildWorld());
     }
 
 	// Use this for initialization
 	void Start () {
+        Vector3 ppos = player.transform.position;
+
+        player.transform.position = new Vector3(ppos.x, Utils.GenHeight(ppos.x, ppos.z) + 1, ppos.z);
         player.SetActive(false);
-        chunks = new Dictionary<string, Chunk>();
+
+        firstBuild = true;
+        chunks = new ConcurrentDictionary<string, Chunk>();
         this.transform.position = Vector3.zero;
         this.transform.rotation = Quaternion.identity;
+
+        // Build starting chunk
+        BuildChunkAt((int)(player.transform.position.x / chunkSize), (int)(player.transform.position.y / chunkSize), (int)(player.transform.position.z / chunkSize));
+
+        // Start Chunk drawing coroutine
+        StartCoroutine(DrawChunks());
+
+        // Create the rest of the world
+        StartCoroutine(BuildRecWorld((int)(player.transform.position.x / chunkSize), (int)(player.transform.position.y / chunkSize), (int)(player.transform.position.z / chunkSize), radius));
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        if (!building && !firstBuild) StartCoroutine(BuildWorld());
+        if (!player.activeSelf)
+        {
+            player.SetActive(true);
+            firstBuild = false;
+        }
+
+        StartCoroutine(DrawChunks());
 	}
 }
