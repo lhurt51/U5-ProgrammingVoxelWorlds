@@ -11,6 +11,7 @@ public class Block {
         GRASS,
         DIRT,
         STONE,
+        DIAMOND,
         AIR
     };
 
@@ -38,7 +39,9 @@ public class Block {
         // Dirt
         { new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f), new Vector2(0.125f, 1.0f), new Vector2(0.1875f, 1.0f) },
         // Stone
-        { new Vector2(0.0f, 0.875f), new Vector2(0.0625f, 0.875f), new Vector2(0.0f, 0.9375f), new Vector2(0.0625f, 0.9375f) }
+        { new Vector2(0.0f, 0.875f), new Vector2(0.0625f, 0.875f), new Vector2(0.0f, 0.9375f), new Vector2(0.0625f, 0.9375f) },
+        // Diamond
+        { new Vector2(0.125f, 0.75f), new Vector2(0.1875f, 0.75f), new Vector2(0.125f, 0.8125f), new Vector2(0.1875f, 0.8125f) }
     };
 
     int ConvertBlockIndexToLocal(int i)
