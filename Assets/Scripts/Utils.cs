@@ -37,4 +37,9 @@ public class Utils {
         return (int)Map(0.0f, maxHeight, 0.0f, 1.0f, fBM(x * smooth, z * smooth, octaves, persistence));
     }
 
+    public static int GenStoneHeight(float x, float z)
+    {
+        return (int)Map(0.0f, maxHeight - 30, 0.0f, 1.0f, fBM(x * smooth * 2, z * smooth * 2, octaves + 1, persistence));
+    }
+
 }
