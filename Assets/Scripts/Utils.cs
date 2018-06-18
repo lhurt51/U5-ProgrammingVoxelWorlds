@@ -16,6 +16,7 @@ public class Utils {
 
     static float fBM(float x, float z, int oct, float pers)
     {
+        float offset = 32000.0f;
         float total = 0.0f;
         float freq = 1.0f;
         float amp = 1.0f;
@@ -23,7 +24,7 @@ public class Utils {
 
         for (int i = 0; i < oct; i++)
         {
-            total += Mathf.PerlinNoise(x * freq, z * freq) * amp;
+            total += Mathf.PerlinNoise((x + offset) * freq, (z + offset) * freq) * amp;
             maxVal += amp;
             amp *= pers;
             freq *= 2;

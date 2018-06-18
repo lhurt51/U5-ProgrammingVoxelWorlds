@@ -80,6 +80,8 @@ public class Chunk {
             }
         }
         CombineMeshes();
+        MeshCollider col = chunk.gameObject.AddComponent(typeof(MeshCollider)) as MeshCollider;
+        col.sharedMesh = chunk.transform.GetComponent<MeshFilter>().mesh;
     }
 
     public Chunk(Vector3 pos, Material c)
