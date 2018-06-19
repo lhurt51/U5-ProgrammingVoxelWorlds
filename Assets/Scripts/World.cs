@@ -11,8 +11,9 @@ public class World : MonoBehaviour {
     public static int columnHeight = 16;
     public static int chunkSize = 16;
     public static int worldSize = 1;
-    public static int radius = 6;
+    public static int radius = 4;
     public static ConcurrentDictionary<string, Chunk> chunks;
+    public static List<string> toRemove = new List<string>();
 
     bool firstBuild = true;
     Vector3 lastBuildPos;
@@ -80,7 +81,24 @@ public class World : MonoBehaviour {
         foreach (KeyValuePair<string, Chunk> c in chunks)
         {
             if (c.Value.status == Chunk.ChunkStatus.DRAW) c.Value.DrawChunk();
+            if (c.Value.chunk && Vector3.Distance(player.transform.position, c.Value.chunk.transform.position) > radius * chunkSize) toRemove.Add(c.Key);
             yield return null;
+        }
+    }
+
+    IEnumerator RemoveOldChunks()
+    {
+        for (int i = 0; i < toRemove.Count; i++)
+        {
+            Chunk c;
+            string n = toRemove[i];
+
+            if (chunks.TryGetValue(n, out c))
+            {
+                Destroy(c.chunk);
+                chunks.TryRemove(n, out c);
+                yield return null;
+            }
         }
     }
 
@@ -118,7 +136,7 @@ public class World : MonoBehaviour {
 	void Update () {
         Vector3 movement = lastBuildPos - player.transform.position;
 
-        if (movement.magnitude > chunkSize * 2)
+        if (movement.magnitude > chunkSize - 5)
         {
             lastBuildPos = player.transform.position;
             BuildNearPlayer();
@@ -131,5 +149,6 @@ public class World : MonoBehaviour {
         }
 
         queue.Run(DrawChunks());
+        queue.Run(RemoveOldChunks());
 	}
 }
