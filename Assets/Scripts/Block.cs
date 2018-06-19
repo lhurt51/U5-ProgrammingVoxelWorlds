@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class Block {
 
-    public bool isSolid;
-
     public enum BlockType
     {
         GRASS,
@@ -17,6 +15,9 @@ public class Block {
         AIR
     };
 
+    public BlockType bType;
+    public bool isSolid;
+
     enum CubeSide
     {
         BOTTOM,
@@ -27,7 +28,6 @@ public class Block {
         BACK
     };
 
-    BlockType bType;
     Chunk owner;
     GameObject parent;
     Vector3 pos;

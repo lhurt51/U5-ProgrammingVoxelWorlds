@@ -96,6 +96,7 @@ public class World : MonoBehaviour {
             if (chunks.TryGetValue(n, out c))
             {
                 Destroy(c.chunk);
+                c.Save();
                 chunks.TryRemove(n, out c);
                 yield return null;
             }
@@ -136,7 +137,7 @@ public class World : MonoBehaviour {
 	void Update () {
         Vector3 movement = lastBuildPos - player.transform.position;
 
-        if (movement.magnitude > chunkSize - 5)
+        if (movement.magnitude > chunkSize)
         {
             lastBuildPos = player.transform.position;
             BuildNearPlayer();
