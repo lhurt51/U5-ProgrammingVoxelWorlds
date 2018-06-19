@@ -11,10 +11,14 @@ public class World : MonoBehaviour {
     public static int columnHeight = 16;
     public static int chunkSize = 16;
     public static int worldSize = 1;
-    public static int radius = 4;
+    public static int radius = 6;
     public static ConcurrentDictionary<string, Chunk> chunks;
 
     bool firstBuild = true;
+    Vector3 lastBuildPos;
+
+    CoroutineQueue queue;
+    public static uint maxCoroutines = 1000;
 
     public static string BuildChunkName(Vector3 v)
     {
@@ -37,11 +41,37 @@ public class World : MonoBehaviour {
 
     IEnumerator BuildRecWorld(int x, int y, int z, int rad)
     {
+        rad--;
         if (rad <= 0) yield break;
 
-        BuildChunkAt(x, y, z - 1);
-        StartCoroutine(BuildRecWorld(x, y, z - 1, --rad));
+        // Build chunk frnt
+        BuildChunkAt(x, y, z + 1);
+        queue.Run(BuildRecWorld(x, y, z + 1, rad));
+        yield return null;
 
+        // Build chunk back
+        BuildChunkAt(x, y, z - 1);
+        queue.Run(BuildRecWorld(x, y, z - 1, rad));
+        yield return null;
+
+        // Build chunk left
+        BuildChunkAt(x - 1, y, z);
+        queue.Run(BuildRecWorld(x - 1, y, z, rad));
+        yield return null;
+
+        // Build chunk right
+        BuildChunkAt(x + 1, y, z);
+        queue.Run(BuildRecWorld(x + 1, y, z, rad));
+        yield return null;
+
+        // Build chunk up
+        BuildChunkAt(x, y + 1, z);
+        queue.Run(BuildRecWorld(x, y + 1, z, rad));
+        yield return null;
+
+        // Build chunk down
+        BuildChunkAt(x, y - 1, z);
+        queue.Run(BuildRecWorld(x, y - 1, z, rad));
         yield return null;
     }
 
@@ -54,36 +84,52 @@ public class World : MonoBehaviour {
         }
     }
 
+    public void BuildNearPlayer()
+    {
+        StopCoroutine("BuildRecWorld");
+        queue.Run(BuildRecWorld((int)(player.transform.position.x / chunkSize), (int)(player.transform.position.y / chunkSize), (int)(player.transform.position.z / chunkSize), radius));
+    }
+
 	// Use this for initialization
 	void Start () {
         Vector3 ppos = player.transform.position;
 
         player.transform.position = new Vector3(ppos.x, Utils.GenHeight(ppos.x, ppos.z) + 1, ppos.z);
+        lastBuildPos = player.transform.position;
         player.SetActive(false);
 
         firstBuild = true;
         chunks = new ConcurrentDictionary<string, Chunk>();
         this.transform.position = Vector3.zero;
         this.transform.rotation = Quaternion.identity;
+        queue = new CoroutineQueue(maxCoroutines, StartCoroutine);
 
         // Build starting chunk
         BuildChunkAt((int)(player.transform.position.x / chunkSize), (int)(player.transform.position.y / chunkSize), (int)(player.transform.position.z / chunkSize));
 
         // Start Chunk drawing coroutine
-        StartCoroutine(DrawChunks());
+        queue.Run(DrawChunks());
 
         // Create the rest of the world
-        StartCoroutine(BuildRecWorld((int)(player.transform.position.x / chunkSize), (int)(player.transform.position.y / chunkSize), (int)(player.transform.position.z / chunkSize), radius));
+        queue.Run(BuildRecWorld((int)(player.transform.position.x / chunkSize), (int)(player.transform.position.y / chunkSize), (int)(player.transform.position.z / chunkSize), radius));
 	}
 	
 	// Update is called once per frame
 	void Update () {
+        Vector3 movement = lastBuildPos - player.transform.position;
+
+        if (movement.magnitude > chunkSize * 2)
+        {
+            lastBuildPos = player.transform.position;
+            BuildNearPlayer();
+        }
+
         if (!player.activeSelf)
         {
             player.SetActive(true);
             firstBuild = false;
         }
 
-        StartCoroutine(DrawChunks());
+        queue.Run(DrawChunks());
 	}
 }

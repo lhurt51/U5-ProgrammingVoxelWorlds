@@ -41,11 +41,10 @@ public class Chunk {
                     else if (worldY == Utils.GenHeight(worldX, worldZ)) chunkData[x, y, z] = new Block(Block.BlockType.GRASS, pos, chunk.gameObject, this);
                     else if (worldY < Utils.GenHeight(worldX, worldZ)) chunkData[x, y, z] = new Block(Block.BlockType.DIRT, pos, chunk.gameObject, this);
                     else chunkData[x, y, z] = new Block(Block.BlockType.AIR, pos, chunk.gameObject, this);
+                    status = ChunkStatus.DRAW;
                 }
             }
         }
-
-        status = ChunkStatus.DRAW;
     }
 
     void CombineMeshes()
@@ -69,7 +68,6 @@ public class Chunk {
         mf.mesh = new Mesh();
         // Add combined meshes on children as the parents mesh
         mf.mesh.CombineMeshes(combine);
-
         renderer.material = cubeMat;
 
         // Delete all uncombined children
@@ -91,7 +89,10 @@ public class Chunk {
         CombineMeshes();
         MeshCollider col = chunk.gameObject.AddComponent(typeof(MeshCollider)) as MeshCollider;
         col.sharedMesh = chunk.transform.GetComponent<MeshFilter>().mesh;
+        status = ChunkStatus.DONE;
     }
+
+    public Chunk() { }
 
     public Chunk(Vector3 pos, Material c)
     {
