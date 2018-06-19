@@ -82,16 +82,6 @@ public class Block {
         return false;
     }
 
-    public Block(BlockType b, Vector3 pos, GameObject p, Chunk c)
-    {
-        bType = b;
-        this.pos = pos;
-        parent = p;
-        owner = c;
-        if (bType == BlockType.AIR) isSolid = false;
-        else isSolid = true;
-    }
-
     void CreateQuad(CubeSide side)
     {
         Mesh mesh = new Mesh();
@@ -187,6 +177,13 @@ public class Block {
         // renderer.material = blockMat;
     }
 
+    public void SetType(BlockType b)
+    {
+        bType = b;
+        if (bType == BlockType.AIR) isSolid = false;
+        else isSolid = true;
+    }
+
     public void Draw()
     {
         if (bType == BlockType.AIR) return;
@@ -203,5 +200,15 @@ public class Block {
             CreateQuad(CubeSide.LEFT);
         if (!HasSolidNeighbour((int)pos.x + 1, (int)pos.y, (int)pos.z))
             CreateQuad(CubeSide.RIGHT);
+    }
+
+    public Block(BlockType b, Vector3 pos, GameObject p, Chunk c)
+    {
+        bType = b;
+        this.pos = pos;
+        parent = p;
+        owner = c;
+        if (bType == BlockType.AIR) isSolid = false;
+        else isSolid = true;
     }
 }
