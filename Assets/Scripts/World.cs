@@ -25,6 +25,29 @@ public class World : MonoBehaviour {
         return (int)v.x + "_" + (int)v.y + "_" + (int)v.z;
     }
 
+    public static Block GetWorldBlock(Vector3 pos)
+    {
+        int cx, cy, cz;
+
+        if (pos.x < 0) cx = (int)(Mathf.Round(pos.x - chunkSize) / (float)chunkSize) * chunkSize;
+        else cx = (int)(Mathf.Round(pos.x) / (float)chunkSize) * chunkSize;
+
+        if (pos.y < 0) cy = (int)(Mathf.Round(pos.y - chunkSize) / (float)chunkSize) * chunkSize;
+        else cy = (int)(Mathf.Round(pos.y) / (float)chunkSize) * chunkSize;
+
+        if (pos.z < 0) cz = (int)(Mathf.Round(pos.z - chunkSize) / (float)chunkSize) * chunkSize;
+        else cz = (int)(Mathf.Round(pos.z) / (float)chunkSize) * chunkSize;
+
+        Chunk c;
+        string cn = BuildChunkName(new Vector3(cx, cy, cz));
+        int blx = (int)Mathf.Abs((float)Mathf.Round(pos.x) - cx);
+        int bly = (int)Mathf.Abs((float)Mathf.Round(pos.y) - cy);
+        int blz = (int)Mathf.Abs((float)Mathf.Round(pos.z) - cz);
+
+        if (chunks.TryGetValue(cn, out c)) return c.chunkData[blx, bly, blz];
+        else return null;
+    }
+
     void BuildChunkAt(int x, int y, int z)
     {
         Vector3 cPos = new Vector3(x * chunkSize, y * chunkSize, z * chunkSize);

@@ -20,12 +20,12 @@ public class BlockInteraction : MonoBehaviour {
                 if (!World.chunks.TryGetValue(hit.collider.gameObject.name, out hitc)) return;
 
                 Vector3 hitBlock = (Input.GetMouseButton(0)) ? hit.point - hit.normal / 2.0f : hit.point + hit.normal / 2.0f;
-                int x = (int)(Mathf.Round(hitBlock.x) - hit.collider.gameObject.transform.position.x);
-                int y = (int)(Mathf.Round(hitBlock.y) - hit.collider.gameObject.transform.position.y);
-                int z = (int)(Mathf.Round(hitBlock.z) - hit.collider.gameObject.transform.position.z);
+                Block b = World.GetWorldBlock(hitBlock);
+
+                hitc = b.Owner;
 
                 bool update = false;
-                update = (Input.GetMouseButton(0)) ? hitc.chunkData[x, y, z].HitBlock() : hitc.chunkData[x, y, z].BuildBlock(Block.BlockType.STONE);
+                update = (Input.GetMouseButton(0)) ? b.HitBlock() : b.BuildBlock(Block.BlockType.STONE);
 
                 if (update)
                 {
@@ -35,12 +35,12 @@ public class BlockInteraction : MonoBehaviour {
                     float thisCZ = hitc.chunk.transform.position.z;
 
                     // Update neighbours?
-                    if (x == 0) updates.Add(World.BuildChunkName(new Vector3(thisCX - World.chunkSize, thisCY, thisCZ)));
-                    if (x == World.chunkSize - 1) updates.Add(World.BuildChunkName(new Vector3(thisCX + World.chunkSize, thisCY, thisCZ)));
-                    if (y == 0) updates.Add(World.BuildChunkName(new Vector3(thisCX, thisCY - World.chunkSize, thisCZ)));
-                    if (y == World.chunkSize - 1) updates.Add(World.BuildChunkName(new Vector3(thisCX, thisCY + World.chunkSize, thisCZ)));
-                    if (z == 0) updates.Add(World.BuildChunkName(new Vector3(thisCX, thisCY, thisCZ - World.chunkSize)));
-                    if (z == World.chunkSize - 1) updates.Add(World.BuildChunkName(new Vector3(thisCX, thisCY, thisCZ + World.chunkSize)));
+                    if (b.Pos.x == 0) updates.Add(World.BuildChunkName(new Vector3(thisCX - World.chunkSize, thisCY, thisCZ)));
+                    if (b.Pos.x == World.chunkSize - 1) updates.Add(World.BuildChunkName(new Vector3(thisCX + World.chunkSize, thisCY, thisCZ)));
+                    if (b.Pos.y == 0) updates.Add(World.BuildChunkName(new Vector3(thisCX, thisCY - World.chunkSize, thisCZ)));
+                    if (b.Pos.y == World.chunkSize - 1) updates.Add(World.BuildChunkName(new Vector3(thisCX, thisCY + World.chunkSize, thisCZ)));
+                    if (b.Pos.z == 0) updates.Add(World.BuildChunkName(new Vector3(thisCX, thisCY, thisCZ - World.chunkSize)));
+                    if (b.Pos.z == World.chunkSize - 1) updates.Add(World.BuildChunkName(new Vector3(thisCX, thisCY, thisCZ + World.chunkSize)));
 
                     foreach (string cname in updates)
                     {

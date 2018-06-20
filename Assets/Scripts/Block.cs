@@ -30,6 +30,16 @@ public class Block {
     public BlockType health;
     public bool isSolid;
 
+    public Chunk Owner
+    {
+        get { return owner; }
+    }
+
+    public Vector3 Pos
+    {
+        get { return pos; }
+    }
+
     enum CubeSide
     {
         BOTTOM,
