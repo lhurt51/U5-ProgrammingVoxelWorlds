@@ -29,13 +29,13 @@ public class World : MonoBehaviour {
     {
         int cx, cy, cz;
 
-        if (pos.x < 0) cx = (int)(Mathf.Round(pos.x - chunkSize) + 1 / (float)chunkSize) * chunkSize;
+        if (pos.x < 0) cx = (int)((Mathf.Round(pos.x - chunkSize) + 1) / (float)chunkSize) * chunkSize;
         else cx = (int)(Mathf.Round(pos.x) / (float)chunkSize) * chunkSize;
 
-        if (pos.y < 0) cy = (int)(Mathf.Round(pos.y - chunkSize) + 1 / (float)chunkSize) * chunkSize;
+        if (pos.y < 0) cy = (int)((Mathf.Round(pos.y - chunkSize) + 1) / (float)chunkSize) * chunkSize;
         else cy = (int)(Mathf.Round(pos.y) / (float)chunkSize) * chunkSize;
 
-        if (pos.z < 0) cz = (int)(Mathf.Round(pos.z - chunkSize) + 1 / (float)chunkSize) * chunkSize;
+        if (pos.z < 0) cz = (int)((Mathf.Round(pos.z - chunkSize) + 1) / (float)chunkSize) * chunkSize;
         else cz = (int)(Mathf.Round(pos.z) / (float)chunkSize) * chunkSize;
 
         Chunk c;
