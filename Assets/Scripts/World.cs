@@ -15,7 +15,6 @@ public class World : MonoBehaviour {
     public static ConcurrentDictionary<string, Chunk> chunks;
     public static List<string> toRemove = new List<string>();
 
-    bool firstBuild = true;
     Vector3 lastBuildPos;
 
     CoroutineQueue queue;
@@ -117,7 +116,6 @@ public class World : MonoBehaviour {
         lastBuildPos = player.transform.position;
         player.SetActive(false);
 
-        firstBuild = true;
         chunks = new ConcurrentDictionary<string, Chunk>();
         this.transform.position = Vector3.zero;
         this.transform.rotation = Quaternion.identity;
@@ -143,11 +141,7 @@ public class World : MonoBehaviour {
             BuildNearPlayer();
         }
 
-        if (!player.activeSelf)
-        {
-            player.SetActive(true);
-            firstBuild = false;
-        }
+        if (!player.activeSelf) player.SetActive(true);
 
         queue.Run(DrawChunks());
         queue.Run(RemoveOldChunks());

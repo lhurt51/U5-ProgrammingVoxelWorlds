@@ -219,7 +219,7 @@ public class Block {
         meshFilter.mesh = mesh;
     }
 
-    public void SetType(BlockType b)
+    void SetType(BlockType b)
     {
         bType = b;
         if (bType == BlockType.AIR) isSolid = false;
@@ -234,6 +234,13 @@ public class Block {
         health = BlockType.NOCRACK;
         curHealth = blockHealthMax[(int)bType];
         owner.Redraw();
+    }
+
+    public bool BuildBlock(BlockType b)
+    {
+        SetType(b);
+        owner.Redraw();
+        return true;
     }
 
     public bool HitBlock()
