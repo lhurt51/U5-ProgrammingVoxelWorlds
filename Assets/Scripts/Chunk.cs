@@ -37,10 +37,11 @@ public class Chunk {
         DONE,
         KEEP
     };
+    public ChunkStatus status;
     public Material cubeMat;
     public Block[,,] chunkData;
     public GameObject chunk;
-    public ChunkStatus status;
+    public ChunkMB mb;
 
     BlockData bd;
 
@@ -186,6 +187,8 @@ public class Chunk {
     {
         chunk = new GameObject(World.BuildChunkName(pos));
         chunk.transform.position = pos;
+        mb = chunk.AddComponent<ChunkMB>();
+        mb.SetOwner(this);
         cubeMat = c;
         BuildChunk();
     }

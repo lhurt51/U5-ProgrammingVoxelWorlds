@@ -229,12 +229,23 @@ public class Block {
         curHealth = blockHealthMax[(int)bType];
     }
 
+    public void Reset()
+    {
+        health = BlockType.NOCRACK;
+        curHealth = blockHealthMax[(int)bType];
+        owner.Redraw();
+    }
+
     public bool HitBlock()
     {
         if (curHealth == -1) return false;
 
         curHealth--;
         health++;
+
+        if (curHealth == (blockHealthMax[(int)bType] - 1))
+            owner.mb.StartCoroutine(owner.mb.HealBlock(pos));
+
         if (curHealth <= 0)
         {
             bType = BlockType.AIR;

@@ -9,7 +9,7 @@ public class Utils {
     static int octaves = 4;
     static float persistence = 0.5f;
 
-    static float Map(float newMin, float newMax, float origMin, float origMax, float val)
+    public static float Map(float newMin, float newMax, float origMin, float origMax, float val)
     {
         return Mathf.Lerp(newMin, newMax, Mathf.InverseLerp(origMin, origMax, val));
     }
