@@ -172,6 +172,14 @@ public class Chunk {
         status = ChunkStatus.DONE;
     }
 
+    public void Redraw()
+    {
+        GameObject.DestroyImmediate(chunk.GetComponent<MeshFilter>());
+        GameObject.DestroyImmediate(chunk.GetComponent<MeshRenderer>());
+        GameObject.DestroyImmediate(chunk.GetComponent<Collider>());
+        DrawChunk();
+    }
+
     public Chunk() { }
 
     public Chunk(Vector3 pos, Material c)

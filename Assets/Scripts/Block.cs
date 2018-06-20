@@ -12,10 +12,22 @@ public class Block {
         BEDROCK,
         REDSTONE,
         DIAMOND,
+        NOCRACK,
+        CRACK1,
+        CRACK2,
+        CRACK3,
+        CRACK4,
+        CRACK5,
+        CRACK6,
+        CRACK7,
+        CRACK8,
+        CRACK9,
+        CRACK10,
         AIR
     };
 
     public BlockType bType;
+    public BlockType health;
     public bool isSolid;
 
     enum CubeSide
@@ -32,6 +44,9 @@ public class Block {
     GameObject parent;
     Vector3 pos;
 
+    int curHealth;
+    int[] blockHealthMax = { 6, 6, 9, -1, 9, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
     Vector2[,] blockUVs =
     {
         // Grass top
@@ -47,7 +62,29 @@ public class Block {
 		// Redstone
         { new Vector2(0.1875f, 0.75f), new Vector2(0.25f, 0.75f), new Vector2 (0.1875f, 0.8125f), new Vector2(0.25f, 0.8125f) },
         // Diamond
-        { new Vector2(0.125f, 0.75f), new Vector2(0.1875f, 0.75f), new Vector2(0.125f, 0.8125f), new Vector2(0.1875f, 0.8125f) }
+        { new Vector2(0.125f, 0.75f), new Vector2(0.1875f, 0.75f), new Vector2(0.125f, 0.8125f), new Vector2(0.1875f, 0.8125f) },
+        // No Crack
+        { new Vector2(0.6875f, 0.0f),  new Vector2(0.75f, 0.0f), new Vector2(0.6875f, 0.0625f), new Vector2(0.75f, 0.0625f) },
+        // Crack #1
+        { new Vector2(0.0f, 0.0f),  new Vector2(0.0625f, 0.0f), new Vector2(0.0f, 0.0625f), new Vector2(0.0625f, 0.0625f) },
+        // Crack #2
+        { new Vector2(0.0625f, 0.0f),  new Vector2(0.125f, 0.0f), new Vector2(0.0625f, 0.0625f), new Vector2(0.125f, 0.0625f) },
+        // Crack #3
+        { new Vector2(0.125f, 0.0f),  new Vector2(0.1875f, 0.0f), new Vector2(0.125f, 0.0625f), new Vector2(0.1875f, 0.0625f) },
+        // Crack #4
+        { new Vector2(0.1875f, 0.0f),  new Vector2(0.25f, 0.0f), new Vector2(0.1875f,0.0625f), new Vector2(0.25f, 0.0625f) },
+        // Crack #5
+        { new Vector2(0.25f, 0.0f),  new Vector2(0.3125f, 0.0f), new Vector2(0.25f, 0.0625f), new Vector2(0.3125f, 0.0625f) },
+        // Crack #6
+        { new Vector2(0.3125f, 0.0f),  new Vector2(0.375f, 0.0f), new Vector2(0.3125f, 0.0625f), new Vector2(0.375f, 0.0625f) },
+        // Crack #7
+        { new Vector2(0.375f, 0.0f),  new Vector2(0.4375f, 0.0f), new Vector2(0.375f, 0.0625f), new Vector2(0.4375f, 0.0625f) },
+        // Crack #8
+        { new Vector2(0.4375f, 0.0f),  new Vector2(0.5f, 0.0f), new Vector2(0.4375f, 0.0625f), new Vector2(0.5f, 0.0625f) },
+        // Crack #9
+        { new Vector2(0.5f, 0.0f),  new Vector2(0.5625f, 0.0f), new Vector2(0.5f, 0.0625f), new Vector2(0.5625f, 0.0625f) },
+        // Crack #10
+        { new Vector2(0.5625f, 0.0f),  new Vector2(0.625f, 0.0f), new Vector2(0.5625f, 0.0625f), new Vector2(0.625f, 0.0625f) }
     };
 
     int ConvertBlockIndexToLocal(int i)
@@ -89,6 +126,7 @@ public class Block {
         Vector3[] vertices = new Vector3[4];
         Vector3[] normals = new Vector3[4];
         Vector2[] uvs = new Vector2[4];
+        List<Vector2> suvs = new List<Vector2>();
         int[] triangles = new int[6];
 
         // All possible UVs
@@ -118,6 +156,11 @@ public class Block {
             uv01 = blockUVs[(int)(bType + 1), 2];
             uv11 = blockUVs[(int)(bType + 1), 3];
         }
+        // Set crack uvs
+        suvs.Add(blockUVs[(int)(health + 1), 3]);
+        suvs.Add(blockUVs[(int)(health + 1), 2]);
+        suvs.Add(blockUVs[(int)(health + 1), 0]);
+        suvs.Add(blockUVs[(int)(health + 1), 1]);
 
         // All possible vertices in a cube
         Vector3 p0 = new Vector3(-0.5f, -0.5f, 0.5f);
@@ -164,17 +207,16 @@ public class Block {
         mesh.vertices = vertices;
         mesh.normals = normals;
         mesh.uv = uvs;
+        mesh.SetUVs(1, suvs);
         mesh.triangles = triangles;
         mesh.RecalculateBounds();
 
         GameObject quad = new GameObject("Quad");
         MeshFilter meshFilter = (MeshFilter)quad.AddComponent(typeof(MeshFilter));
-        // MeshRenderer renderer = quad.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
 
         quad.transform.parent = parent.transform;
         quad.transform.position = pos;
         meshFilter.mesh = mesh;
-        // renderer.material = blockMat;
     }
 
     public void SetType(BlockType b)
@@ -182,6 +224,27 @@ public class Block {
         bType = b;
         if (bType == BlockType.AIR) isSolid = false;
         else isSolid = true;
+
+        health = BlockType.NOCRACK;
+        curHealth = blockHealthMax[(int)bType];
+    }
+
+    public bool HitBlock()
+    {
+        if (curHealth == -1) return false;
+
+        curHealth--;
+        health++;
+        if (curHealth <= 0)
+        {
+            bType = BlockType.AIR;
+            isSolid = false;
+            health = BlockType.NOCRACK;
+            owner.Redraw();
+            return true;
+        }
+        owner.Redraw();
+        return false;
     }
 
     public void Draw()
@@ -204,11 +267,9 @@ public class Block {
 
     public Block(BlockType b, Vector3 pos, GameObject p, Chunk c)
     {
-        bType = b;
         this.pos = pos;
         parent = p;
         owner = c;
-        if (bType == BlockType.AIR) isSolid = false;
-        else isSolid = true;
+        SetType(b);
     }
 }
