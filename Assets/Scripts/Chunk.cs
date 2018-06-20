@@ -42,6 +42,7 @@ public class Chunk {
     public Block[,,] chunkData;
     public GameObject chunk;
     public ChunkMB mb;
+    public bool changed = false;
 
     BlockData bd;
 

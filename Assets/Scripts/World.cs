@@ -135,7 +135,7 @@ public class World : MonoBehaviour {
 	void Start () {
         Vector3 ppos = player.transform.position;
 
-        player.transform.position = new Vector3(ppos.x, Utils.GenHeight(ppos.x, ppos.z) + 1, ppos.z);
+        player.transform.position = new Vector3(ppos.x, Utils.GenHeight(ppos.x, ppos.z) + 5, ppos.z);
         lastBuildPos = player.transform.position;
         player.SetActive(false);
 

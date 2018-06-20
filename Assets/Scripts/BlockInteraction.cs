@@ -5,9 +5,12 @@ using UnityEngine;
 public class BlockInteraction : MonoBehaviour {
 
     public GameObject cam;
+    public Block.BlockType buildType = Block.BlockType.DIRT;
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Alpha1)) buildType = Block.BlockType.DIRT;
+        if (Input.GetKeyDown(KeyCode.Alpha2)) buildType = Block.BlockType.STONE;
         if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
         {
             RaycastHit hit;
@@ -21,14 +24,12 @@ public class BlockInteraction : MonoBehaviour {
 
                 Vector3 hitBlock = (Input.GetMouseButton(0)) ? hit.point - hit.normal / 2.0f : hit.point + hit.normal / 2.0f;
                 Block b = World.GetWorldBlock(hitBlock);
+                bool update = (Input.GetMouseButton(0)) ? b.HitBlock() : b.BuildBlock(buildType);
 
                 hitc = b.Owner;
-
-                bool update = false;
-                update = (Input.GetMouseButton(0)) ? b.HitBlock() : b.BuildBlock(Block.BlockType.STONE);
-
                 if (update)
                 {
+                    hitc.changed = true;
                     List<string> updates = new List<string>();
                     float thisCX = hitc.chunk.transform.position.x;
                     float thisCY = hitc.chunk.transform.position.y;
