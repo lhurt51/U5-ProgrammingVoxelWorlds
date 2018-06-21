@@ -8,10 +8,11 @@ public class World : MonoBehaviour {
 
     public GameObject player;
     public Material textureAtlas;
+    public Material fluidTex;
     public static int columnHeight = 16;
     public static int chunkSize = 16;
     public static int worldSize = 1;
-    public static int radius = 4;
+    public static int radius = 2;
     public static ConcurrentDictionary<string, Chunk> chunks;
     public static List<string> toRemove = new List<string>();
 
@@ -56,60 +57,64 @@ public class World : MonoBehaviour {
 
         if (!chunks.TryGetValue(n, out c))
         {
-            c = new Chunk(cPos, textureAtlas);
+            c = new Chunk(cPos, textureAtlas, fluidTex);
             c.chunk.transform.parent = this.transform;
+            c.fluid.transform.parent = this.transform;
             chunks.TryAdd(c.chunk.name, c);
         }
     }
 
-    IEnumerator BuildRecWorld(int x, int y, int z, int rad)
+    IEnumerator BuildRecWorld(int x, int y, int z, int startRad, int rad)
     {
-        rad--;
-        if (rad <= 0) yield break;
+        int nextrad = rad - 1;
+        if (rad <= 0 || y < 0 || y > columnHeight) yield break;
 
         // Build chunk frnt
         BuildChunkAt(x, y, z + 1);
-        queue.Run(BuildRecWorld(x, y, z + 1, rad));
+        queue.Run(BuildRecWorld(x, y, z + 1, rad, nextrad));
         yield return null;
 
         // Build chunk back
         BuildChunkAt(x, y, z - 1);
-        queue.Run(BuildRecWorld(x, y, z - 1, rad));
+        queue.Run(BuildRecWorld(x, y, z - 1, rad, nextrad));
         yield return null;
 
         // Build chunk left
         BuildChunkAt(x - 1, y, z);
-        queue.Run(BuildRecWorld(x - 1, y, z, rad));
+        queue.Run(BuildRecWorld(x - 1, y, z, rad, nextrad));
         yield return null;
 
         // Build chunk right
         BuildChunkAt(x + 1, y, z);
-        queue.Run(BuildRecWorld(x + 1, y, z, rad));
+        queue.Run(BuildRecWorld(x + 1, y, z, rad, nextrad));
         yield return null;
 
         // Build chunk up
         BuildChunkAt(x, y + 1, z);
-        queue.Run(BuildRecWorld(x, y + 1, z, rad));
+        queue.Run(BuildRecWorld(x, y + 1, z, rad, nextrad));
         yield return null;
 
         // Build chunk down
         BuildChunkAt(x, y - 1, z);
-        queue.Run(BuildRecWorld(x, y - 1, z, rad));
+        queue.Run(BuildRecWorld(x, y - 1, z, rad, nextrad));
         yield return null;
     }
 
     IEnumerator DrawChunks()
     {
+        toRemove.Clear();
         foreach (KeyValuePair<string, Chunk> c in chunks)
         {
             if (c.Value.status == Chunk.ChunkStatus.DRAW) c.Value.DrawChunk();
             if (c.Value.chunk && Vector3.Distance(player.transform.position, c.Value.chunk.transform.position) > radius * chunkSize) toRemove.Add(c.Key);
             yield return null;
         }
+        Debug.Log("Draw: " + toRemove.Count);
     }
 
     IEnumerator RemoveOldChunks()
     {
+        Debug.Log("Remove: " + toRemove.Count);
         for (int i = 0; i < toRemove.Count; i++)
         {
             Chunk c;
@@ -118,7 +123,7 @@ public class World : MonoBehaviour {
             if (chunks.TryGetValue(n, out c))
             {
                 Destroy(c.chunk);
-                c.Save();
+                // c.Save();
                 chunks.TryRemove(n, out c);
                 yield return null;
             }
@@ -128,14 +133,14 @@ public class World : MonoBehaviour {
     public void BuildNearPlayer()
     {
         StopCoroutine("BuildRecWorld");
-        queue.Run(BuildRecWorld((int)(player.transform.position.x / chunkSize), (int)(player.transform.position.y / chunkSize), (int)(player.transform.position.z / chunkSize), radius));
+        queue.Run(BuildRecWorld((int)(player.transform.position.x / chunkSize), (int)(player.transform.position.y / chunkSize), (int)(player.transform.position.z / chunkSize), radius, radius));
     }
 
 	// Use this for initialization
 	void Start () {
         Vector3 ppos = player.transform.position;
 
-        player.transform.position = new Vector3(ppos.x, Utils.GenHeight(ppos.x, ppos.z) + 5, ppos.z);
+        player.transform.position = new Vector3(ppos.x, Utils.GenHeight(ppos.x, ppos.z) + 1, ppos.z);
         lastBuildPos = player.transform.position;
         player.SetActive(false);
 
@@ -151,14 +156,14 @@ public class World : MonoBehaviour {
         queue.Run(DrawChunks());
 
         // Create the rest of the world
-        queue.Run(BuildRecWorld((int)(player.transform.position.x / chunkSize), (int)(player.transform.position.y / chunkSize), (int)(player.transform.position.z / chunkSize), radius));
+        queue.Run(BuildRecWorld((int)(player.transform.position.x / chunkSize), (int)(player.transform.position.y / chunkSize), (int)(player.transform.position.z / chunkSize), radius, radius));
 	}
 	
 	// Update is called once per frame
 	void Update () {
         Vector3 movement = lastBuildPos - player.transform.position;
 
-        if (movement.magnitude > chunkSize)
+        if (movement.magnitude >= chunkSize)
         {
             lastBuildPos = player.transform.position;
             BuildNearPlayer();
@@ -168,5 +173,5 @@ public class World : MonoBehaviour {
 
         queue.Run(DrawChunks());
         queue.Run(RemoveOldChunks());
-	}
+    }
 }

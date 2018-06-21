@@ -26,7 +26,7 @@ public class ChunkMB : MonoBehaviour {
     {
         if (owner.changed)
         {
-            owner.Save();
+            // owner.Save();
             owner.changed = false;
         }
     }

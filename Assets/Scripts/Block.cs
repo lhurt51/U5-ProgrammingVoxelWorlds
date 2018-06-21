@@ -8,6 +8,7 @@ public class Block {
     {
         GRASS,
         DIRT,
+        WATER,
         STONE,
         BEDROCK,
         REDSTONE,
@@ -55,7 +56,7 @@ public class Block {
     Vector3 pos;
 
     int curHealth;
-    int[] blockHealthMax = { 6, 6, 9, -1, 9, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    int[] blockHealthMax = { 6, 6, 8, 9, -1, 9, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
     Vector2[,] blockUVs =
     {
@@ -65,6 +66,8 @@ public class Block {
         { new Vector2(0.1875f, 0.9375f), new Vector2(0.25f, 0.9375f), new Vector2(0.1875f, 1.0f), new Vector2(0.25f, 1.0f) },
         // Dirt
         { new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f), new Vector2(0.125f, 1.0f), new Vector2(0.1875f, 1.0f) },
+        // Water
+        { new Vector2(0.875f, 0.125f),  new Vector2(0.9375f, 0.125f), new Vector2(0.875f, 0.1875f), new Vector2(0.9375f, 0.1875f) },
         // Stone
         { new Vector2(0.0f, 0.875f), new Vector2(0.0625f, 0.875f), new Vector2(0.0f, 0.9375f), new Vector2(0.0625f, 0.9375f) },
         // Bedrock
@@ -106,24 +109,11 @@ public class Block {
 
     bool HasSolidNeighbour(int x, int y, int z)
     {
-        Block[,,] chunks;
-
-        if (x < 0 || x >= World.chunkSize || y < 0 || y >= World.chunkSize || z < 0 || z >= World.chunkSize)
+        try
         {
-            Chunk nChunk;
-            Vector3 neighbourChunkPos = this.parent.transform.position + new Vector3((x - (int)pos.x) * World.chunkSize, (y - (int)pos.y) * World.chunkSize, (z - (int)pos.z) * World.chunkSize);
-            string nName = World.BuildChunkName(neighbourChunkPos);
-
-            x = ConvertBlockIndexToLocal(x);
-            y = ConvertBlockIndexToLocal(y);
-            z = ConvertBlockIndexToLocal(z);
-
-            if (World.chunks.TryGetValue(nName, out nChunk)) chunks = nChunk.chunkData;
-            else return false;
+            Block b = GetBlock(x, y, z);
+            if (b != null) return (b.isSolid || b.bType == bType);
         }
-        else chunks = owner.chunkData;
-
-        try { return chunks[x, y, z].isSolid; }
         catch (System.IndexOutOfRangeException ex) { if (ex != null) Debug.Log("Index: " + x + "_" + y + "_" + z + " is empty"); }
 
         return false;
@@ -232,11 +222,32 @@ public class Block {
     void SetType(BlockType b)
     {
         bType = b;
-        if (bType == BlockType.AIR) isSolid = false;
-        else isSolid = true;
-
+        isSolid = (bType == BlockType.AIR || bType == BlockType.WATER) ? false : true;
+        parent = (bType == BlockType.WATER) ? owner.fluid.gameObject : owner.chunk.gameObject;
         health = BlockType.NOCRACK;
         curHealth = blockHealthMax[(int)bType];
+    }
+
+    public Block GetBlock(int x, int y, int z)
+    {
+        Block[,,] chunks;
+
+        if (x < 0 || x >= World.chunkSize || y < 0 || y >= World.chunkSize || z < 0 || z >= World.chunkSize)
+        {
+            Chunk nChunk;
+            Vector3 neighbourChunkPos = this.parent.transform.position + new Vector3((x - (int)pos.x) * World.chunkSize, (y - (int)pos.y) * World.chunkSize, (z - (int)pos.z) * World.chunkSize);
+            string nName = World.BuildChunkName(neighbourChunkPos);
+
+            x = ConvertBlockIndexToLocal(x);
+            y = ConvertBlockIndexToLocal(y);
+            z = ConvertBlockIndexToLocal(z);
+
+            if (World.chunks.TryGetValue(nName, out nChunk)) chunks = nChunk.chunkData;
+            else return null;
+        }
+        else chunks = owner.chunkData;
+
+        return chunks[x, y, z];
     }
 
     public void Reset()
