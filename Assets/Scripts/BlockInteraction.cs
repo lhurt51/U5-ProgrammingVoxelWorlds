@@ -9,7 +9,7 @@ public class BlockInteraction : MonoBehaviour {
 
     private void Update()
     {
-        if (Input.GetKeyDown("0")) buildType = Block.BlockType.WATER;
+        if (Input.GetKeyDown("0")) buildType = Block.BlockType.SAND;
         if (Input.GetKeyDown("1")) buildType = Block.BlockType.DIRT;
         if (Input.GetKeyDown("2")) buildType = Block.BlockType.STONE;
         if (Input.GetKeyDown("3")) buildType = Block.BlockType.DIAMOND;

@@ -70,6 +70,33 @@ public class ChunkMB : MonoBehaviour {
         }
     }
 
+    public IEnumerator Drop(Block b, Block.BlockType bt, int maxDrop)
+    {
+        Block thisB = b;
+        Block prevB = null;
+
+        for (int i = 0; i < maxDrop; i++)
+        {
+            Block.BlockType prevT = thisB.bType;
+
+            if (prevT != bt) thisB.SetType(bt);
+            if (prevB != null)
+            {
+                prevB.SetType(prevT);
+                if (thisB.Owner != prevB.Owner) prevB.Owner.Redraw();
+            }
+
+            prevB = thisB;
+            thisB.Owner.Redraw();
+
+            yield return new WaitForSeconds(0.1f);
+            Vector3 pos = thisB.Pos;
+
+            thisB = thisB.GetBlock((int)pos.x, (int)pos.y - 1, (int)pos.z);
+            if (thisB.isSolid) yield break;
+        }
+    }
+
     void SaveProgress()
     {
         if (owner.changed)

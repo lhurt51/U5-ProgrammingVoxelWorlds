@@ -10,6 +10,7 @@ public class Block {
         DIRT,
         WATER,
         STONE,
+        SAND,
         BEDROCK,
         REDSTONE,
         DIAMOND,
@@ -62,7 +63,7 @@ public class Block {
     Vector3 pos;
 
     int curHealth;
-    int[] blockHealthMax = { 6, 6, 8, 9, -1, 9, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    int[] blockHealthMax = { 6, 6, 8, 9, 3, -1, 9, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
     Vector2[,] blockUVs =
     {
@@ -76,6 +77,8 @@ public class Block {
         { new Vector2(0.875f, 0.125f),  new Vector2(0.9375f, 0.125f), new Vector2(0.875f, 0.1875f), new Vector2(0.9375f, 0.1875f) },
         // Stone
         { new Vector2(0.0f, 0.875f), new Vector2(0.0625f, 0.875f), new Vector2(0.0f, 0.9375f), new Vector2(0.0625f, 0.9375f) },
+        // Sand
+        { new Vector2(0.125f, 0.875f), new Vector2(0.1875f,0.875f), new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f) },
         // Bedrock
         { new Vector2(0.3125f, 0.8125f), new Vector2(0.375f, 0.8125f), new Vector2(0.3125f, 0.875f), new Vector2(0.375f, 0.875f) },
 		// Redstone
@@ -266,6 +269,7 @@ public class Block {
     public bool BuildBlock(BlockType b)
     {
         if (b == BlockType.WATER) owner.mb.StartCoroutine(owner.mb.Flow(this, BlockType.WATER, blockHealthMax[(int)BlockType.WATER], 10));
+        else if (b == BlockType.SAND) owner.mb.StartCoroutine(owner.mb.Drop(this, BlockType.SAND, 20));
         else
         {
             SetType(b);
