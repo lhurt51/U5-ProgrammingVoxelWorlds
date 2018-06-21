@@ -41,6 +41,12 @@ public class Block {
         get { return pos; }
     }
 
+    public int CurHealth
+    {
+        get { return curHealth; }
+        set { curHealth = value; }
+    }
+
     enum CubeSide
     {
         BOTTOM,
@@ -219,7 +225,7 @@ public class Block {
         meshFilter.mesh = mesh;
     }
 
-    void SetType(BlockType b)
+    public void SetType(BlockType b)
     {
         bType = b;
         isSolid = (bType == BlockType.AIR || bType == BlockType.WATER) ? false : true;
@@ -259,8 +265,12 @@ public class Block {
 
     public bool BuildBlock(BlockType b)
     {
-        SetType(b);
-        owner.Redraw();
+        if (b == BlockType.WATER) owner.mb.StartCoroutine(owner.mb.Flow(this, BlockType.WATER, blockHealthMax[(int)BlockType.WATER], 10));
+        else
+        {
+            SetType(b);
+            owner.Redraw();
+        }
         return true;
     }
 

@@ -18,8 +18,13 @@ public class World : MonoBehaviour {
 
     Vector3 lastBuildPos;
 
-    CoroutineQueue queue;
+    static CoroutineQueue queue;
     public static uint maxCoroutines = 1000;
+
+    public static CoroutineQueue Queue
+    {
+        get { return queue; }
+    }
 
     public static string BuildChunkName(Vector3 v)
     {
@@ -41,9 +46,9 @@ public class World : MonoBehaviour {
 
         Chunk c;
         string cn = BuildChunkName(new Vector3(cx, cy, cz));
-        int blx = (int)Mathf.Abs((float)Mathf.Round(pos.x) - cx);
-        int bly = (int)Mathf.Abs((float)Mathf.Round(pos.y) - cy);
-        int blz = (int)Mathf.Abs((float)Mathf.Round(pos.z) - cz);
+        int blx = (int)Mathf.Abs((float)Mathf.RoundToInt(pos.x) - cx);
+        int bly = (int)Mathf.Abs((float)Mathf.RoundToInt(pos.y) - cy);
+        int blz = (int)Mathf.Abs((float)Mathf.RoundToInt(pos.z) - cz);
 
         if (chunks.TryGetValue(cn, out c)) return c.chunkData[blx, bly, blz];
         else return null;

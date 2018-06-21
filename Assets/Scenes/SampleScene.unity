@@ -225,6 +225,10 @@ Prefab:
       propertyPath: m_Layer
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 11400000, guid: 5e9e851c0e142814dac026a256ba2ac0, type: 2}
+      propertyPath: m_UseHeadBob
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 5e9e851c0e142814dac026a256ba2ac0, type: 2}
   m_IsPrefabParent: 0
@@ -315,7 +319,7 @@ RectTransform:
   m_GameObject: {fileID: 1453237934}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_Children: []
   m_Father: {fileID: 1966768343}
   m_RootOrder: 0
@@ -387,6 +391,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 1630052010}
   textureAtlas: {fileID: 2100000, guid: ed8d22751eff48349ab92dbe7b681415, type: 2}
+  fluidTex: {fileID: 2100000, guid: ee53b3f417b9dfd42a590580381d7f0e, type: 2}
 --- !u!4 &1588913394
 Transform:
   m_ObjectHideFlags: 0
@@ -416,6 +421,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cam: {fileID: 1874213552}
+  buildType: 1
 --- !u!1 &1874213552 stripped
 GameObject:
   m_PrefabParentObject: {fileID: 100002, guid: 5e9e851c0e142814dac026a256ba2ac0, type: 2}
