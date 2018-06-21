@@ -125,6 +125,7 @@ public class Block {
         }
         catch (System.IndexOutOfRangeException ex) { if (ex != null) Debug.Log("Index: " + x + "_" + y + "_" + z + " is empty"); }
 
+        if (bType == BlockType.WATER) return true;
         return false;
     }
 
@@ -268,8 +269,8 @@ public class Block {
 
     public bool BuildBlock(BlockType b)
     {
-        if (b == BlockType.WATER) owner.mb.StartCoroutine(owner.mb.Flow(this, BlockType.WATER, blockHealthMax[(int)BlockType.WATER], 10));
-        else if (b == BlockType.SAND) owner.mb.StartCoroutine(owner.mb.Drop(this, BlockType.SAND, 20));
+        if (b == BlockType.WATER) World.Queue.Run(owner.mb.Flow(this, BlockType.WATER, blockHealthMax[(int)BlockType.WATER], 10));
+        else if (b == BlockType.SAND) World.Queue.Run(owner.mb.Drop(this, BlockType.SAND, 20));
         else
         {
             SetType(b);
@@ -286,7 +287,7 @@ public class Block {
         health++;
 
         if (curHealth == (blockHealthMax[(int)bType] - 1))
-            owner.mb.StartCoroutine(owner.mb.HealBlock(pos));
+            World.Queue.Run(owner.mb.HealBlock(pos));
 
         if (curHealth <= 0)
         {

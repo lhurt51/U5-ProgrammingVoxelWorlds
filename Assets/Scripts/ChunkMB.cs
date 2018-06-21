@@ -43,7 +43,7 @@ public class ChunkMB : MonoBehaviour {
         Block below = b.GetBlock(x, y - 1, z);
         if (below != null && below.bType == Block.BlockType.AIR)
         {
-            StartCoroutine(Flow(b.GetBlock(x, y - 1, z), bt, strength, --maxSize));
+            World.Queue.Run(Flow(b.GetBlock(x, y - 1, z), bt, strength, --maxSize));
             yield break;
         }
         // Flow outward

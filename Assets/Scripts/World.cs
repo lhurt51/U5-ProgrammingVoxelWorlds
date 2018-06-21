@@ -107,19 +107,16 @@ public class World : MonoBehaviour {
 
     IEnumerator DrawChunks()
     {
-        toRemove.Clear();
         foreach (KeyValuePair<string, Chunk> c in chunks)
         {
             if (c.Value.status == Chunk.ChunkStatus.DRAW) c.Value.DrawChunk();
             if (c.Value.chunk && Vector3.Distance(player.transform.position, c.Value.chunk.transform.position) > radius * chunkSize) toRemove.Add(c.Key);
             yield return null;
         }
-        Debug.Log("Draw: " + toRemove.Count);
     }
 
     IEnumerator RemoveOldChunks()
     {
-        Debug.Log("Remove: " + toRemove.Count);
         for (int i = 0; i < toRemove.Count; i++)
         {
             Chunk c;
@@ -133,6 +130,7 @@ public class World : MonoBehaviour {
                 yield return null;
             }
         }
+        toRemove.Clear();
     }
 
     public void BuildNearPlayer()
@@ -168,7 +166,7 @@ public class World : MonoBehaviour {
 	void Update () {
         Vector3 movement = lastBuildPos - player.transform.position;
 
-        if (movement.magnitude >= chunkSize)
+        if (movement.magnitude >= chunkSize * 0.5f)
         {
             lastBuildPos = player.transform.position;
             BuildNearPlayer();
