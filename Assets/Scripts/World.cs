@@ -75,7 +75,11 @@ public class World : MonoBehaviour {
         if (rad <= 0 || y < 0 || y > columnHeight) yield break;
 
         // Main chunk
-        if (rad == radius) BuildChunkAt(x, y, z);
+        if (rad == radius)
+        {
+            BuildChunkAt(x, y, z);
+            yield return null;
+        }
 
         // Build chunk frnt
         BuildChunkAt(x, y, z + 1);
@@ -104,13 +108,15 @@ public class World : MonoBehaviour {
 
     IEnumerator DrawChunks()
     {
+        yield return null;
+
         toRemove.Clear();
         foreach (KeyValuePair<string, Chunk> c in chunks)
         {
             if (c.Value.status == Chunk.ChunkStatus.DRAW) c.Value.DrawChunk();
             if (c.Value.chunk && Vector3.Distance(player.transform.position, c.Value.chunk.transform.position) > radius * chunkSize) toRemove.Add(c.Key);
         }
-        yield return null;
+        yield break;
     }
 
     IEnumerator RemoveOldChunks()
@@ -128,7 +134,7 @@ public class World : MonoBehaviour {
                 chunks.TryRemove(n, out c);
             }
         }
-        yield return null;
+        yield break;
     }
 
     public void BuildNearPlayer()
@@ -162,9 +168,9 @@ public class World : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-        Vector3 movement = (lastBuildPos - player.transform.position) / chunkSize;
+        Vector3 movement = lastBuildPos - player.transform.position;
 
-        if (movement.magnitude >= 0.75f)
+        if (movement.magnitude >= chunkSize * 0.75)
         {
             lastBuildPos = player.transform.position;
             BuildNearPlayer();
