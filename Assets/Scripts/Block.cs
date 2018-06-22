@@ -11,6 +11,9 @@ public class Block {
         WATER,
         STONE,
         SAND,
+        LEAVES,
+        WOOD,
+        WOODBASE,
         BEDROCK,
         REDSTONE,
         DIAMOND,
@@ -63,7 +66,7 @@ public class Block {
     Vector3 pos;
 
     int curHealth;
-    int[] blockHealthMax = { 6, 6, 8, 9, 3, -1, 9, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    int[] blockHealthMax = { 6, 6, 8, 9, 3, 2, 6, 6, -1, 9, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
     Vector2[,] blockUVs =
     {
@@ -79,6 +82,12 @@ public class Block {
         { new Vector2(0.0f, 0.875f), new Vector2(0.0625f, 0.875f), new Vector2(0.0f, 0.9375f), new Vector2(0.0625f, 0.9375f) },
         // Sand
         { new Vector2(0.125f, 0.875f), new Vector2(0.1875f,0.875f), new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f) },
+        // Leaves
+        { new Vector2(0.0625f, 0.375f), new Vector2(0.125f, 0.375f), new Vector2(0.0625f, 0.4375f), new Vector2(0.125f, 0.4375f) },
+        // Wood
+        { new Vector2(0.375f, 0.625f), new Vector2(0.4375f, 0.625f), new Vector2(0.375f, 0.6875f), new Vector2(0.4375f, 0.6875f) },
+        // Woodbase
+        { new Vector2(0.375f, 0.625f), new Vector2(0.4375f, 0.625f), new Vector2(0.375f, 0.6875f), new Vector2(0.4375f, 0.6875f) },
         // Bedrock
         { new Vector2(0.3125f, 0.8125f), new Vector2(0.375f, 0.8125f), new Vector2(0.3125f, 0.875f), new Vector2(0.375f, 0.875f) },
 		// Redstone
@@ -111,8 +120,8 @@ public class Block {
 
     int ConvertBlockIndexToLocal(int i)
     {
-        if (i == -1) i = World.chunkSize - 1;
-        else if (i == World.chunkSize) i = 0;
+        if (i <= -1) i += World.chunkSize;
+        else if (i >= World.chunkSize) i -= World.chunkSize;
         return i;
     }
 
@@ -213,7 +222,7 @@ public class Block {
         uvs = new Vector2[] { uv11, uv01, uv00, uv10 };
         triangles = new int[] { 3, 1, 0, 3, 2, 1 };
 
-        mesh.name = "ScriptedMesh";
+        mesh.name = "ScriptedMesh" + side.ToString();
         mesh.vertices = vertices;
         mesh.normals = normals;
         mesh.uv = uvs;
@@ -245,7 +254,10 @@ public class Block {
         if (x < 0 || x >= World.chunkSize || y < 0 || y >= World.chunkSize || z < 0 || z >= World.chunkSize)
         {
             Chunk nChunk;
-            Vector3 neighbourChunkPos = this.parent.transform.position + new Vector3((x - (int)pos.x) * World.chunkSize, (y - (int)pos.y) * World.chunkSize, (z - (int)pos.z) * World.chunkSize);
+            int newX = (x < 0 || x >= World.chunkSize) ? (x - (int)pos.x) * World.chunkSize : 0;
+            int newY = (y < 0 || y >= World.chunkSize) ? (y - (int)pos.y) * World.chunkSize : 0;
+            int newZ = (z < 0 || z >= World.chunkSize) ? (z - (int)pos.z) * World.chunkSize : 0;
+            Vector3 neighbourChunkPos = this.parent.transform.position + new Vector3(newX, newY, newZ);
             string nName = World.BuildChunkName(neighbourChunkPos);
 
             x = ConvertBlockIndexToLocal(x);
@@ -253,7 +265,11 @@ public class Block {
             z = ConvertBlockIndexToLocal(z);
 
             if (World.chunks.TryGetValue(nName, out nChunk)) chunks = nChunk.chunkData;
-            else return null;
+            else
+            {
+                // Debug.Log(nName);
+                return null;
+            }
         }
         else chunks = owner.chunkData;
 

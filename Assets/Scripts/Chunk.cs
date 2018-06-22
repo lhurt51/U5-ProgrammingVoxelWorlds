@@ -45,6 +45,7 @@ public class Chunk {
     public GameObject fluid;
     public ChunkMB mb;
     public bool changed = false;
+    public bool treesCreated = false;
 
     BlockData bd;
 
@@ -119,15 +120,59 @@ public class Chunk {
                         if (Utils.fBM3D(worldX, worldY, worldZ, 0.03f, 3) < 0.41f && worldY < 20) chunkData[x, y, z] = new Block(Block.BlockType.REDSTONE, pos, chunk.gameObject, this);
                         else chunkData[x, y, z] = new Block(Block.BlockType.STONE, pos, chunk.gameObject, this);
                     }
-                    else if (worldY == surfaceHeight) chunkData[x, y, z] = new Block(Block.BlockType.GRASS, pos, chunk.gameObject, this);
+                    else if (worldY == surfaceHeight)
+                    {
+                        if (Utils.fBM3D(worldX, worldY, worldZ, 0.175f, 2) < 0.35f) chunkData[x, y, z] = new Block(Block.BlockType.WOODBASE, pos, chunk.gameObject, this);
+                        else chunkData[x, y, z] = new Block(Block.BlockType.GRASS, pos, chunk.gameObject, this);
+                    }
                     else if (worldY < surfaceHeight) chunkData[x, y, z] = new Block(Block.BlockType.DIRT, pos, chunk.gameObject, this);
                     else chunkData[x, y, z] = new Block(Block.BlockType.AIR, pos, chunk.gameObject, this);
 
                     if (chunkData[x, y, z].bType != Block.BlockType.WATER && Utils.fBM3D(worldX, worldY, worldZ, 0.08f, 3) < 0.42f) chunkData[x, y, z] = new Block(Block.BlockType.AIR, pos, chunk.gameObject, this);
-                    if (worldY < 70 && chunkData[x, y, z].bType == Block.BlockType.AIR) chunkData[x, y, z] = new Block(Block.BlockType.WATER, pos, fluid.gameObject, this);
+                    if (worldY < 65 && chunkData[x, y, z].bType == Block.BlockType.AIR) chunkData[x, y, z] = new Block(Block.BlockType.WATER, pos, fluid.gameObject, this);
                     if (worldY == 0) chunkData[x, y, z] = new Block(Block.BlockType.BEDROCK, pos, chunk.gameObject, this);
 
                     status = ChunkStatus.DRAW;
+                }
+            }
+        }
+    }
+
+    void BuildTrees(Block trunk, int x, int y, int z)
+    {
+        if (trunk.bType != Block.BlockType.WOODBASE) return;
+
+        Block t = trunk.GetBlock(x, y + 1, z);
+
+        if (t != null)
+        {
+            t.SetType(Block.BlockType.WOOD);
+            if (t.Owner != trunk.Owner && t.Owner.treesCreated) t.Owner.Redraw();
+
+            Block t1 = t.GetBlock(x, y + 2, z);
+            if (t1 != null)
+            {
+                t1.SetType(Block.BlockType.WOOD);
+                if (t1.Owner != trunk.Owner && t1.Owner.treesCreated) t1.Owner.Redraw();
+                for (int i = -1; i <= 1; i++)
+                {
+                    for (int j = -1; j <= 1; j++)
+                    {
+                        for (int k = 3; k <= 4; k++)
+                        {
+                            Block t2 = trunk.GetBlock(x + i, y + k, z + j);
+                            if (t2 == null) return;
+                            else if (t2.bType == Block.BlockType.AIR) t2.SetType(Block.BlockType.LEAVES);
+                            if (t2.Owner != trunk.Owner && t2.Owner.treesCreated) t2.Owner.Redraw();
+                        }
+                    }
+                }
+
+                Block t3 = t1.GetBlock(x, y + 5, z);
+                if (t3 != null)
+                {
+                    t3.SetType(Block.BlockType.LEAVES);
+                    if (t3.Owner != trunk.Owner && t3.Owner.treesCreated) t3.Owner.Redraw();
                 }
             }
         }
@@ -164,6 +209,25 @@ public class Chunk {
     {
         MeshCollider col = chunk.gameObject.AddComponent(typeof(MeshCollider)) as MeshCollider;
 
+        if (!treesCreated)
+        {
+            for (int z = 0; z < World.chunkSize; z++)
+            {
+                for (int y = 0; y < World.chunkSize; y++)
+                {
+                    for (int x = 0; x < World.chunkSize; x++)
+                    {
+                        int worldX = (int)(x + chunk.transform.position.x);
+                        int worldY = (int)(y + chunk.transform.position.y);
+                        int worldZ = (int)(z + chunk.transform.position.z);
+
+                        if (Utils.GenHeight(worldX, worldZ) == worldY) BuildTrees(chunkData[x, y, z], x, y, z);
+                    }
+                }
+            }
+            treesCreated = true;
+        }
+
         for (int z = 0; z < World.chunkSize; z++)
         {
             for (int y = 0; y < World.chunkSize; y++)
@@ -176,7 +240,7 @@ public class Chunk {
         }
         CombineMeshes(chunk.gameObject, cubeMat);
         col.sharedMesh = chunk.transform.GetComponent<MeshFilter>().mesh;
-        CombineMeshes(fluid.gameObject, fluidMat);
+        if (fluid != null) CombineMeshes(fluid.gameObject, fluidMat);
         status = ChunkStatus.DONE;
     }
 
@@ -185,8 +249,12 @@ public class Chunk {
         GameObject.DestroyImmediate(chunk.GetComponent<MeshFilter>());
         GameObject.DestroyImmediate(chunk.GetComponent<MeshRenderer>());
         GameObject.DestroyImmediate(chunk.GetComponent<Collider>());
-        GameObject.DestroyImmediate(fluid.GetComponent<MeshFilter>());
-        GameObject.DestroyImmediate(fluid.GetComponent<MeshRenderer>());
+        if (fluid != null)
+        {
+            GameObject.DestroyImmediate(fluid.GetComponent<MeshFilter>());
+            GameObject.DestroyImmediate(fluid.GetComponent<MeshRenderer>());
+            GameObject.DestroyImmediate(fluid.GetComponent<Collider>());
+        }
         DrawChunk();
     }
 
@@ -220,14 +288,22 @@ public class Chunk {
         chunk = new GameObject(World.BuildChunkName(pos));
         chunk.transform.position = pos;
 
-        fluid = new GameObject(World.BuildChunkName(pos) + "_F");
-        fluid.transform.position = pos;
+        int worldY = (int)(pos.y);
+        if (worldY < 65)
+        {
+            fluid = new GameObject(World.BuildChunkName(pos) + "_F");
+            fluid.transform.position = pos;
+        }
+        else fluid = null;
 
         mb = chunk.AddComponent<ChunkMB>();
         mb.SetOwner(this);
 
         cubeMat = c;
         fluidMat = t;
+
+        changed = false;
+        treesCreated = false;
 
         BuildChunk();
     }
