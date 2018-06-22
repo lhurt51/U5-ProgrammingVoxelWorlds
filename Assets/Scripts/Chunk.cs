@@ -190,6 +190,29 @@ public class Chunk {
         DrawChunk();
     }
 
+    public void UpdateChunk()
+    {
+        for (int z = 0; z < World.chunkSize; z++)
+        {
+            for (int y = 0; y < World.chunkSize; y++)
+            {
+                for (int x = 0; x < World.chunkSize; x++)
+                {
+                    if (chunkData[x, y, z].bType == Block.BlockType.SAND)
+                    {
+                        World.Queue.Run(mb.Drop(chunkData[x, y, z], Block.BlockType.SAND, 20));
+
+                        if (y == (World.chunkSize - 1))
+                        {
+                            Block bAbove = chunkData[x, y, z].GetBlock(x, y + 1, z);
+                            if (bAbove.bType == Block.BlockType.SAND) bAbove.Owner.UpdateChunk();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public Chunk() { }
 
     public Chunk(Vector3 pos, Material c, Material t)

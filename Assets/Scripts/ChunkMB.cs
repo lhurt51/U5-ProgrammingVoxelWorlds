@@ -72,6 +72,7 @@ public class ChunkMB : MonoBehaviour {
 
     public IEnumerator Drop(Block b, Block.BlockType bt, int maxDrop)
     {
+        Vector3 pos;
         Block thisB = b;
         Block prevB = null;
 
@@ -83,14 +84,27 @@ public class ChunkMB : MonoBehaviour {
             if (prevB != null)
             {
                 prevB.SetType(prevT);
-                if (thisB.Owner != prevB.Owner) prevB.Owner.Redraw();
+                if (thisB.Owner != prevB.Owner)
+                {
+                    pos = prevB.Pos;
+                    prevB.Owner.Redraw();
+                    if (pos.x == 0) prevB.GetBlock((int)pos.x - 1, (int)pos.y, (int)pos.z).Owner.Redraw();
+                    if (pos.x == World.chunkSize - 1) prevB.GetBlock((int)pos.x + 1, (int)pos.y, (int)pos.z).Owner.Redraw();
+                    if (pos.z == 0) prevB.GetBlock((int)pos.x, (int)pos.y, (int)pos.z - 1).Owner.Redraw();
+                    if (pos.z == World.chunkSize - 1) prevB.GetBlock((int)pos.x, (int)pos.y, (int)pos.z + 1).Owner.Redraw();
+                }
             }
 
-            prevB = thisB;
+            pos = thisB.Pos;
             thisB.Owner.Redraw();
+            if (pos.x == 0) thisB.GetBlock((int)pos.x - 1, (int)pos.y, (int)pos.z).Owner.Redraw();
+            if (pos.x == World.chunkSize - 1) thisB.GetBlock((int)pos.x + 1, (int)pos.y, (int)pos.z).Owner.Redraw();
+            if (pos.z == 0) thisB.GetBlock((int)pos.x, (int)pos.y, (int)pos.z - 1).Owner.Redraw();
+            if (pos.z == World.chunkSize - 1) thisB.GetBlock((int)pos.x, (int)pos.y, (int)pos.z + 1).Owner.Redraw();
+            prevB = thisB;
 
-            yield return new WaitForSeconds(0.1f);
-            Vector3 pos = thisB.Pos;
+            yield return new WaitForSeconds(0.125f);
+            pos = thisB.Pos;
 
             thisB = thisB.GetBlock((int)pos.x, (int)pos.y - 1, (int)pos.z);
             if (thisB.isSolid) yield break;

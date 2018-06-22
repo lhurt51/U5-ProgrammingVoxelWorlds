@@ -286,15 +286,16 @@ public class Block {
         curHealth--;
         health++;
 
-        if (curHealth == (blockHealthMax[(int)bType] - 1))
-            World.Queue.Run(owner.mb.HealBlock(pos));
+        if (curHealth == (blockHealthMax[(int)bType] - 1)) World.Queue.Run(owner.mb.HealBlock(pos));
 
         if (curHealth <= 0)
         {
+            if (bType == BlockType.SAND && pos.y == World.chunkSize - 1) GetBlock((int)pos.x, (int)pos.y + 1, (int)pos.z).owner.UpdateChunk();
             bType = BlockType.AIR;
             isSolid = false;
             health = BlockType.NOCRACK;
             owner.Redraw();
+            owner.UpdateChunk();
             return true;
         }
         owner.Redraw();
