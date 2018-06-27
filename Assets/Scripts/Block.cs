@@ -262,29 +262,18 @@ public class Block {
         if (x < 0 || x >= World.chunkSize || y < 0 || y >= World.chunkSize || z < 0 || z >= World.chunkSize)
         {
             Chunk nChunk;
-            int newX = (x < 0 || x >= World.chunkSize) ? ((x < 0) ? Mathf.RoundToInt((-World.chunkSize + 1 + x) / World.chunkSize) : (int)(x / World.chunkSize)) * World.chunkSize : 0;
-            int newY = (y < 0 || y >= World.chunkSize) ? ((y < 0) ? Mathf.RoundToInt((-World.chunkSize + 1 + y) / World.chunkSize) : (int)(y / World.chunkSize)) * World.chunkSize : 0;
-            int newZ = (z < 0 || z >= World.chunkSize) ? ((z < 0) ? Mathf.RoundToInt((-World.chunkSize + 1 + z) / World.chunkSize) : (int)(z / World.chunkSize)) * World.chunkSize : 0;
+            int newX = (x < 0 || x >= World.chunkSize) ? (int)((x < 0) ? (-World.chunkSize + 1 + x) / World.chunkSize : x / World.chunkSize) * World.chunkSize : 0;
+            int newY = (y < 0 || y >= World.chunkSize) ? (int)((y < 0) ? (-World.chunkSize + 1 + y) / World.chunkSize : y / World.chunkSize) * World.chunkSize : 0;
+            int newZ = (z < 0 || z >= World.chunkSize) ? (int)((z < 0) ? (-World.chunkSize + 1 + z) / World.chunkSize : z / World.chunkSize) * World.chunkSize : 0;
             Vector3 neighbourChunkPos = this.parent.transform.position + new Vector3(newX, newY, newZ);
             string nName = World.BuildChunkName(neighbourChunkPos);
 
-            if (bType == BlockType.WOOD || bType == BlockType.WOODBASE || bType == BlockType.LEAVES) Debug.Log("Current Chunk: " + owner.chunk.name);
-            if (bType == BlockType.WOOD || bType == BlockType.WOODBASE || bType == BlockType.LEAVES) Debug.Log("Prev: " + x + " " + y + " " + z);
             x = ConvertBlockIndexToLocal(x);
             y = ConvertBlockIndexToLocal(y);
             z = ConvertBlockIndexToLocal(z);
-            if (bType == BlockType.WOOD || bType == BlockType.WOODBASE || bType == BlockType.LEAVES) Debug.Log("Converted: " + x + " " + y + " " + z);
 
-            if (World.chunks.TryGetValue(nName, out nChunk))
-            {
-                chunks = nChunk.chunkData;
-                if (bType == BlockType.WOOD || bType == BlockType.WOODBASE || bType == BlockType.LEAVES) Debug.Log("Next Chunk: " + nName);
-            }
-            else
-            {
-                if (bType == BlockType.WOOD || bType == BlockType.WOODBASE || bType == BlockType.LEAVES) Debug.Log(nName + " is null");
-                return null;
-            }
+            if (World.chunks.TryGetValue(nName, out nChunk)) chunks = nChunk.chunkData;
+            else return null;
         }
         else chunks = owner.chunkData;
 
