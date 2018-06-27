@@ -122,7 +122,7 @@ public class Chunk {
                     }
                     else if (worldY == surfaceHeight)
                     {
-                        if (Utils.fBM3D(worldX, worldY, worldZ, 0.175f, 2) < 0.35f) chunkData[x, y, z] = new Block(Block.BlockType.WOODBASE, pos, chunk.gameObject, this);
+                        if (Utils.fBM3D(worldX, worldY, worldZ, 0.175f, 2) < 0.35f && worldY >= 65) chunkData[x, y, z] = new Block(Block.BlockType.WOODBASE, pos, chunk.gameObject, this);
                         else chunkData[x, y, z] = new Block(Block.BlockType.GRASS, pos, chunk.gameObject, this);
                     }
                     else if (worldY < surfaceHeight) chunkData[x, y, z] = new Block(Block.BlockType.DIRT, pos, chunk.gameObject, this);
@@ -143,17 +143,14 @@ public class Chunk {
         if (trunk.bType != Block.BlockType.WOODBASE) return;
 
         Block t = trunk.GetBlock(x, y + 1, z);
-
         if (t != null)
         {
             t.SetType(Block.BlockType.WOOD);
-            if (t.Owner != trunk.Owner && t.Owner.treesCreated) t.Owner.Redraw();
 
             Block t1 = t.GetBlock(x, y + 2, z);
             if (t1 != null)
             {
                 t1.SetType(Block.BlockType.WOOD);
-                if (t1.Owner != trunk.Owner && t1.Owner.treesCreated) t1.Owner.Redraw();
                 for (int i = -1; i <= 1; i++)
                 {
                     for (int j = -1; j <= 1; j++)
@@ -161,20 +158,24 @@ public class Chunk {
                         for (int k = 3; k <= 4; k++)
                         {
                             Block t2 = trunk.GetBlock(x + i, y + k, z + j);
-                            if (t2 == null) return;
-                            else if (t2.bType == Block.BlockType.AIR) t2.SetType(Block.BlockType.LEAVES);
-                            if (t2.Owner != trunk.Owner && t2.Owner.treesCreated) t2.Owner.Redraw();
+                            if (t2 != null)
+                            {
+                                if (t2.bType == Block.BlockType.AIR) t2.SetType(Block.BlockType.LEAVES);
+                                if ((t2.Owner != t1.Owner) && t2.Owner.treesCreated) t2.Owner.Redraw();
+                            }
                         }
                     }
                 }
 
-                Block t3 = t1.GetBlock(x, y + 5, z);
+                Block t3 = t.GetBlock(x, y + 5, z);
                 if (t3 != null)
                 {
-                    t3.SetType(Block.BlockType.LEAVES);
-                    if (t3.Owner != trunk.Owner && t3.Owner.treesCreated) t3.Owner.Redraw();
+                    if (t3.bType == Block.BlockType.AIR) t3.SetType(Block.BlockType.LEAVES);
+                    if ((t3.Owner != t1.Owner) && t3.Owner.treesCreated) t3.Owner.Redraw();
                 }
+                if ((t1.Owner != t.Owner) && t1.Owner.treesCreated) t1.Owner.Redraw();
             }
+            if (t.Owner != trunk.Owner && t.Owner.treesCreated) t.Owner.Redraw();
         }
     }
 
@@ -288,8 +289,7 @@ public class Chunk {
         chunk = new GameObject(World.BuildChunkName(pos));
         chunk.transform.position = pos;
 
-        int worldY = (int)(pos.y);
-        if (worldY < 65)
+        if ((int)pos.y < 65)
         {
             fluid = new GameObject(World.BuildChunkName(pos) + "_F");
             fluid.transform.position = pos;
