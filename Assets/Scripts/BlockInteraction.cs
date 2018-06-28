@@ -9,11 +9,11 @@ public class BlockInteraction : MonoBehaviour {
 
     private void Update()
     {
-        if (Input.GetKeyDown("0")) buildType = Block.BlockType.SAND;
         if (Input.GetKeyDown("1")) buildType = Block.BlockType.DIRT;
-        if (Input.GetKeyDown("2")) buildType = Block.BlockType.STONE;
-        if (Input.GetKeyDown("3")) buildType = Block.BlockType.DIAMOND;
-        if (Input.GetKeyDown("4")) buildType = Block.BlockType.REDSTONE;
+        if (Input.GetKeyDown("2")) buildType = Block.BlockType.SAND;
+        if (Input.GetKeyDown("3")) buildType = Block.BlockType.STONE;
+        if (Input.GetKeyDown("4")) buildType = Block.BlockType.DIAMOND;
+        if (Input.GetKeyDown("5")) buildType = Block.BlockType.REDSTONE;
         if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
         {
             RaycastHit hit;

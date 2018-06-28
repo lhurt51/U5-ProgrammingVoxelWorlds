@@ -113,24 +113,25 @@ public class Chunk {
                     }
 
                     int surfaceHeight = Utils.GenHeight(worldX, worldZ);
-                    if (worldY < 5) chunkData[x, y, z] = new Block(Block.BlockType.BEDROCK, pos, chunk.gameObject, this);
+                    if (worldY < 5) chunkData[x, y, z] = new BedRockBlock(pos, chunk.gameObject, this);
                     else if (worldY <= Utils.GenStoneHeight(worldX, worldZ))
                     {
-                        if (Utils.fBM3D(worldX, worldY, worldZ, 0.01f, 2) < 0.4f && worldY < 40) chunkData[x, y, z] = new Block(Block.BlockType.DIAMOND, pos, chunk.gameObject, this);
-                        if (Utils.fBM3D(worldX, worldY, worldZ, 0.03f, 3) < 0.41f && worldY < 20) chunkData[x, y, z] = new Block(Block.BlockType.REDSTONE, pos, chunk.gameObject, this);
-                        else chunkData[x, y, z] = new Block(Block.BlockType.STONE, pos, chunk.gameObject, this);
+                        if (Utils.fBM3D(worldX, worldY, worldZ, 0.01f, 2) < 0.4f && worldY < 40) chunkData[x, y, z] = new DiamondBlock(pos, chunk.gameObject, this);
+                        if (Utils.fBM3D(worldX, worldY, worldZ, 0.03f, 3) < 0.41f && worldY < 20) chunkData[x, y, z] = new RedStoneBlock(pos, chunk.gameObject, this);
+                        else chunkData[x, y, z] = new StoneBlock(pos, chunk.gameObject, this);
                     }
                     else if (worldY == surfaceHeight)
                     {
-                        if (Utils.fBM3D(worldX, worldY, worldZ, 0.175f, 2) < 0.35f && worldY >= 65) chunkData[x, y, z] = new Block(Block.BlockType.WOODBASE, pos, chunk.gameObject, this);
-                        else chunkData[x, y, z] = new Block(Block.BlockType.GRASS, pos, chunk.gameObject, this);
+                        // if (Utils.fBM3D(worldX, worldY, worldZ, 0.175f, 2) < 0.35f && worldY >= 65) chunkData[x, y, z] = new Block(Block.BlockType.WOODBASE, pos, chunk.gameObject, this);
+                        // else chunkData[x, y, z] = new GrassBlock(pos, chunk.gameObject, this);
+                        chunkData[x, y, z] = new GrassBlock(pos, chunk.gameObject, this);
                     }
-                    else if (worldY < surfaceHeight) chunkData[x, y, z] = new Block(Block.BlockType.DIRT, pos, chunk.gameObject, this);
-                    else chunkData[x, y, z] = new Block(Block.BlockType.AIR, pos, chunk.gameObject, this);
+                    else if (worldY < surfaceHeight) chunkData[x, y, z] = new DirtBlock(pos, chunk.gameObject, this);
+                    else chunkData[x, y, z] = new AirBlock(pos, chunk.gameObject, this);
 
-                    if (chunkData[x, y, z].bType != Block.BlockType.WATER && Utils.fBM3D(worldX, worldY, worldZ, 0.08f, 3) < 0.42f) chunkData[x, y, z] = new Block(Block.BlockType.AIR, pos, chunk.gameObject, this);
-                    if (worldY < 65 && chunkData[x, y, z].bType == Block.BlockType.AIR) chunkData[x, y, z] = new Block(Block.BlockType.WATER, pos, fluid.gameObject, this);
-                    if (worldY == 0) chunkData[x, y, z] = new Block(Block.BlockType.BEDROCK, pos, chunk.gameObject, this);
+                    if (chunkData[x, y, z].bType != Block.BlockType.WATER && Utils.fBM3D(worldX, worldY, worldZ, 0.08f, 3) < 0.42f) chunkData[x, y, z] = new AirBlock(pos, chunk.gameObject, this);
+                    if (worldY < 65 && chunkData[x, y, z].bType == Block.BlockType.AIR) chunkData[x, y, z] = new WaterBlock(pos, fluid.gameObject, this);
+                    if (worldY == 0) chunkData[x, y, z] = new BedRockBlock(pos, chunk.gameObject, this);
 
                     status = ChunkStatus.DRAW;
                 }
@@ -305,7 +306,7 @@ public class Chunk {
         fluidMat = t;
 
         changed = false;
-        treesCreated = false;
+        treesCreated = true;
 
         BuildChunk();
     }

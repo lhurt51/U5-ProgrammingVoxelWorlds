@@ -17,22 +17,10 @@ public class Block {
         BEDROCK,
         REDSTONE,
         DIAMOND,
-        NOCRACK,
-        CRACK1,
-        CRACK2,
-        CRACK3,
-        CRACK4,
-        CRACK5,
-        CRACK6,
-        CRACK7,
-        CRACK8,
-        CRACK9,
-        CRACK10,
         AIR
     };
 
     public BlockType bType;
-    public BlockType health;
     public bool isSolid;
 
     public Chunk Owner
@@ -48,10 +36,33 @@ public class Block {
     public int CurHealth
     {
         get { return curHealth; }
-        set { curHealth = value; }
+        set { curHealth = (int)Mathf.Clamp(0.0f, maxHealth, value); }
     }
 
-    enum CubeSide
+    public int MaxHealth
+    {
+        get { return maxHealth; }
+        protected set { maxHealth = (bType != BlockType.BEDROCK) ? (int)Mathf.Max(10.0f, value) : (bType != BlockType.WATER || bType != BlockType.AIR) ? -1 : value; }
+    }
+
+    protected Vector2[,] blockUVs;
+
+    private enum HealthType
+    {
+        NOCRACK,
+        CRACK1,
+        CRACK2,
+        CRACK3,
+        CRACK4,
+        CRACK5,
+        CRACK6,
+        CRACK7,
+        CRACK8,
+        CRACK9,
+        CRACK10,
+    };
+
+    private enum CubeSide
     {
         BOTTOM,
         TOP,
@@ -61,14 +72,15 @@ public class Block {
         BACK
     };
 
-    Chunk owner;
-    GameObject parent;
-    Vector3 pos;
+    private HealthType health;
+    private int curHealth;
+    private int maxHealth;
 
-    int curHealth;
-    int[] blockHealthMax = { 6, 6, 8, 9, 3, 2, 6, 6, -1, 9, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    private Chunk owner;
+    private GameObject parent;
+    private Vector3 pos;
 
-    Vector2[,] blockUVs =
+    /* private Vector2[,] blockUVs =
     {
         // Grass top
         { new Vector2(0.125f, 0.375f), new Vector2(0.1875f, 0.375f), new Vector2(0.125f, 0.4275f), new Vector2(0.1875f, 0.4375f) },
@@ -94,6 +106,10 @@ public class Block {
         { new Vector2(0.1875f, 0.75f), new Vector2(0.25f, 0.75f), new Vector2 (0.1875f, 0.8125f), new Vector2(0.25f, 0.8125f) },
         // Diamond
         { new Vector2(0.125f, 0.75f), new Vector2(0.1875f, 0.75f), new Vector2(0.125f, 0.8125f), new Vector2(0.1875f, 0.8125f) },
+    }; */
+
+    private Vector2[,] healthUVs =
+    {
         // No Crack
         { new Vector2(0.6875f, 0.0f),  new Vector2(0.75f, 0.0f), new Vector2(0.6875f, 0.0625f), new Vector2(0.75f, 0.0625f) },
         // Crack #1
@@ -118,14 +134,14 @@ public class Block {
         { new Vector2(0.5625f, 0.0f),  new Vector2(0.625f, 0.0f), new Vector2(0.5625f, 0.0625f), new Vector2(0.625f, 0.0625f) }
     };
 
-    int ConvertBlockIndexToLocal(int i)
+    private int ConvertBlockIndexToLocal(int i)
     {
         if (i <= -1) i += World.chunkSize;
         else if (i >= World.chunkSize) i -= World.chunkSize;
         return i;
     }
 
-    bool HasSolidNeighbour(int x, int y, int z)
+    private bool HasSolidNeighbour(int x, int y, int z)
     {
         try
         {
@@ -138,9 +154,10 @@ public class Block {
         return false;
     }
 
-    void CreateQuad(CubeSide side)
+    private void CreateQuad(CubeSide side)
     {
         Mesh mesh = new Mesh();
+        mesh.name = "ScriptedMesh" + side.ToString();
 
         Vector3[] vertices = new Vector3[4];
         Vector3[] normals = new Vector3[4];
@@ -149,37 +166,35 @@ public class Block {
         int[] triangles = new int[6];
 
         // All possible UVs
-        Vector2 uv00;
-        Vector2 uv10;
-        Vector2 uv01;
-        Vector2 uv11;
+        Vector2 uv00 , uv10, uv01, uv11;
 
-        if (bType == BlockType.GRASS && side == CubeSide.TOP)
+        if (side == CubeSide.TOP && blockUVs.GetLength(0) >= 2)
+        {
+            uv00 = blockUVs[1, 0];
+            uv10 = blockUVs[1, 1];
+            uv01 = blockUVs[1, 2];
+            uv11 = blockUVs[1, 3];
+        }
+        else if (side == CubeSide.BOTTOM && blockUVs.GetLength(0) == 3)
+        {
+            uv00 = blockUVs[2, 0];
+            uv10 = blockUVs[2, 1];
+            uv01 = blockUVs[2, 2];
+            uv11 = blockUVs[2, 3];
+        }
+        else
         {
             uv00 = blockUVs[0, 0];
             uv10 = blockUVs[0, 1];
             uv01 = blockUVs[0, 2];
             uv11 = blockUVs[0, 3];
         }
-        else if (bType == BlockType.GRASS && side == CubeSide.BOTTOM)
-        {
-            uv00 = blockUVs[(int)(BlockType.DIRT + 1), 0];
-            uv10 = blockUVs[(int)(BlockType.DIRT + 1), 1];
-            uv01 = blockUVs[(int)(BlockType.DIRT + 1), 2];
-            uv11 = blockUVs[(int)(BlockType.DIRT + 1), 3];
-        }
-        else
-        {
-            uv00 = blockUVs[(int)(bType + 1), 0];
-            uv10 = blockUVs[(int)(bType + 1), 1];
-            uv01 = blockUVs[(int)(bType + 1), 2];
-            uv11 = blockUVs[(int)(bType + 1), 3];
-        }
+
         // Set crack uvs
-        suvs.Add(blockUVs[(int)(health + 1), 3]);
-        suvs.Add(blockUVs[(int)(health + 1), 2]);
-        suvs.Add(blockUVs[(int)(health + 1), 0]);
-        suvs.Add(blockUVs[(int)(health + 1), 1]);
+        suvs.Add(healthUVs[(int)health, 3]);
+        suvs.Add(healthUVs[(int)health, 2]);
+        suvs.Add(healthUVs[(int)health, 0]);
+        suvs.Add(healthUVs[(int)health, 1]);
 
         // All possible vertices in a cube
         Vector3 p0 = new Vector3(-0.5f, -0.5f, 0.5f);
@@ -222,7 +237,6 @@ public class Block {
         uvs = new Vector2[] { uv11, uv01, uv00, uv10 };
         triangles = new int[] { 3, 1, 0, 3, 2, 1 };
 
-        mesh.name = "ScriptedMesh" + side.ToString();
         mesh.vertices = vertices;
         mesh.normals = normals;
         mesh.uv = uvs;
@@ -244,15 +258,6 @@ public class Block {
 
         if (b == null) return BlockType.AIR;
         else return b.bType;
-    }
-
-    public void SetType(BlockType b)
-    {
-        bType = b;
-        isSolid = (bType == BlockType.AIR || bType == BlockType.WATER) ? false : true;
-        parent = (bType == BlockType.WATER) ? owner.fluid.gameObject : owner.chunk.gameObject;
-        health = BlockType.NOCRACK;
-        curHealth = blockHealthMax[(int)bType];
     }
 
     public Block GetBlock(int x, int y, int z)
@@ -282,14 +287,23 @@ public class Block {
 
     public void Reset()
     {
-        health = BlockType.NOCRACK;
-        curHealth = blockHealthMax[(int)bType];
+        health = HealthType.NOCRACK;
+        curHealth = maxHealth;
         owner.Redraw();
+    }
+
+    public void SetType(BlockType b)
+    {
+        bType = b;
+        isSolid = (bType == BlockType.AIR || bType == BlockType.WATER) ? false : true;
+        parent = (bType == BlockType.WATER) ? owner.fluid.gameObject : owner.chunk.gameObject;
+        health = HealthType.NOCRACK;
+        curHealth = maxHealth;
     }
 
     public bool BuildBlock(BlockType b)
     {
-        if (b == BlockType.WATER) World.Queue.Run(owner.mb.Flow(this, BlockType.WATER, blockHealthMax[(int)BlockType.WATER], 10));
+        if (b == BlockType.WATER) World.Queue.Run(owner.mb.Flow(this, BlockType.WATER, maxHealth, 10));
         else if (b == BlockType.SAND) World.Queue.Run(owner.mb.Drop(this, BlockType.SAND, 20));
         else
         {
@@ -303,17 +317,14 @@ public class Block {
     {
         if (curHealth == -1) return false;
 
-        curHealth--;
-        health++;
+        health = (HealthType)Mathf.Abs(Utils.Map(0.0f, 10.0f, 0.0f, maxHealth, --curHealth) - 10);
 
-        if (curHealth == (blockHealthMax[(int)bType] - 1)) World.Queue.Run(owner.mb.HealBlock(pos));
+        if (curHealth == (maxHealth - 1)) World.Queue.Run(owner.mb.HealBlock(pos));
 
         if (curHealth <= 0)
         {
             if (bType == BlockType.SAND && pos.y == World.chunkSize - 1) GetBlock((int)pos.x, (int)pos.y + 1, (int)pos.z).owner.UpdateChunk();
-            bType = BlockType.AIR;
-            isSolid = false;
-            health = BlockType.NOCRACK;
+            SetType(BlockType.AIR);
             owner.Redraw();
             owner.UpdateChunk();
             return true;
@@ -326,18 +337,12 @@ public class Block {
     {
         if (bType == BlockType.AIR) return;
 
-        if (!HasSolidNeighbour((int)pos.x, (int)pos.y, (int)pos.z + 1))
-            CreateQuad(CubeSide.FRONT);
-        if (!HasSolidNeighbour((int)pos.x, (int)pos.y, (int)pos.z - 1))
-            CreateQuad(CubeSide.BACK);
-        if (!HasSolidNeighbour((int)pos.x, (int)pos.y + 1, (int)pos.z))
-            CreateQuad(CubeSide.TOP);
-        if (!HasSolidNeighbour((int)pos.x, (int)pos.y - 1, (int)pos.z))
-            CreateQuad(CubeSide.BOTTOM);
-        if (!HasSolidNeighbour((int)pos.x - 1, (int)pos.y, (int)pos.z))
-            CreateQuad(CubeSide.LEFT);
-        if (!HasSolidNeighbour((int)pos.x + 1, (int)pos.y, (int)pos.z))
-            CreateQuad(CubeSide.RIGHT);
+        if (!HasSolidNeighbour((int)pos.x, (int)pos.y, (int)pos.z + 1)) CreateQuad(CubeSide.FRONT);
+        if (!HasSolidNeighbour((int)pos.x, (int)pos.y, (int)pos.z - 1)) CreateQuad(CubeSide.BACK);
+        if (!HasSolidNeighbour((int)pos.x, (int)pos.y + 1, (int)pos.z)) CreateQuad(CubeSide.TOP);
+        if (!HasSolidNeighbour((int)pos.x, (int)pos.y - 1, (int)pos.z)) CreateQuad(CubeSide.BOTTOM);
+        if (!HasSolidNeighbour((int)pos.x - 1, (int)pos.y, (int)pos.z)) CreateQuad(CubeSide.LEFT);
+        if (!HasSolidNeighbour((int)pos.x + 1, (int)pos.y, (int)pos.z)) CreateQuad(CubeSide.RIGHT);
     }
 
     public Block(BlockType b, Vector3 pos, GameObject p, Chunk c)
@@ -347,4 +352,6 @@ public class Block {
         owner = c;
         SetType(b);
     }
+
+    protected Block() { }
 }
