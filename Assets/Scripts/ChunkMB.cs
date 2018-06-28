@@ -16,7 +16,7 @@ public class ChunkMB : MonoBehaviour {
 
 	public IEnumerator HealBlock(Vector3 pos)
     {
-        yield return new WaitForSeconds(3);
+        yield return new WaitForSeconds(5);
 
         if (owner.chunkData[(int)pos.x, (int)pos.y, (int)pos.z].bType != Block.BlockType.AIR)
             owner.chunkData[(int)pos.x, (int)pos.y, (int)pos.z].Reset();

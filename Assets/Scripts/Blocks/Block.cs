@@ -42,7 +42,8 @@ public class Block {
     public int MaxHealth
     {
         get { return maxHealth; }
-        protected set { maxHealth = (bType != BlockType.BEDROCK) ? (int)Mathf.Max(10.0f, value) : (bType != BlockType.WATER || bType != BlockType.AIR) ? -1 : value; }
+        protected set { maxHealth = value; curHealth = maxHealth; }
+        // protected set { maxHealth = (bType != BlockType.BEDROCK) ? (int)Mathf.Max(10.0f, value) : (bType != BlockType.WATER || bType != BlockType.AIR) ? -1 : value; }
     }
 
     protected Vector2[,] blockUVs;
@@ -352,6 +353,4 @@ public class Block {
         owner = c;
         SetType(b);
     }
-
-    protected Block() { }
 }
