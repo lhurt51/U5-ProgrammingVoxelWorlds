@@ -204,6 +204,8 @@ public class Chunk {
 
         // Delete all uncombined children
         foreach (Transform quad in o.transform) GameObject.Destroy(quad.gameObject);
+
+        if (fluid != null) fluid.AddComponent<UVScroller>();
     }
 
     public void DrawChunk()
