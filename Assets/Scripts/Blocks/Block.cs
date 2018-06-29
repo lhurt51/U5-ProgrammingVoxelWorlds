@@ -42,8 +42,8 @@ public class Block {
     public int MaxHealth
     {
         get { return maxHealth; }
-        protected set { maxHealth = value; curHealth = maxHealth; }
-        // protected set { maxHealth = (bType != BlockType.BEDROCK) ? (int)Mathf.Max(10.0f, value) : (bType != BlockType.WATER || bType != BlockType.AIR) ? -1 : value; }
+        //protected set { maxHealth = value; curHealth = maxHealth; }
+        protected set { maxHealth = (bType != BlockType.BEDROCK || bType != BlockType.WATER || bType != BlockType.AIR) ? (int)Mathf.Max(10.0f, value) : (bType == BlockType.BEDROCK) ? -1 : value; }
     }
 
     protected Vector2[,] blockUVs;
@@ -155,6 +155,61 @@ public class Block {
         return false;
     }
 
+    private void SetTypeData(BlockType type, bool isConstructor)
+    {
+        switch (type)
+        {
+            case BlockType.GRASS:
+                if (!isConstructor) blockUVs = GrassBlock.UVs;
+                MaxHealth = GrassBlock.maxHealth;
+                break;
+            case BlockType.DIRT:
+                if (!isConstructor) blockUVs = DirtBlock.UVs;
+                MaxHealth = DirtBlock.maxHealth;
+                break;
+            case BlockType.WATER:
+                if (!isConstructor) blockUVs = WaterBlock.UVs;
+                MaxHealth = WaterBlock.maxHealth;
+                break;
+            case BlockType.STONE:
+                if (!isConstructor) blockUVs = StoneBlock.UVs;
+                MaxHealth = StoneBlock.maxHealth;
+                break;
+            case BlockType.SAND:
+                if (!isConstructor) blockUVs = SandBlock.UVs;
+                MaxHealth = SandBlock.maxHealth;
+                break;
+            case BlockType.LEAVES:
+                if (!isConstructor) blockUVs = TreeBlock.SetTreeData(TreeBlock.tType, true);
+                MaxHealth = TreeBlock.maxHealth;
+                break;
+            case BlockType.WOOD:
+                if (!isConstructor) blockUVs = TreeBlock.SetTreeData(TreeBlock.tType, false);
+                MaxHealth = TreeBlock.maxHealth;
+                break;
+            case BlockType.WOODBASE:
+                if (!isConstructor) blockUVs = TreeBlock.SetTreeData(TreeBlock.tType, false);
+                MaxHealth = TreeBlock.maxHealth;
+                break;
+            case BlockType.BEDROCK:
+                if (!isConstructor) blockUVs = BedRockBlock.UVs;
+                MaxHealth = BedRockBlock.maxHealth;
+                break;
+            case BlockType.REDSTONE:
+                if (!isConstructor) blockUVs = RedStoneBlock.UVs;
+                MaxHealth = RedStoneBlock.maxHealth;
+                break;
+            case BlockType.DIAMOND:
+                if (!isConstructor) blockUVs = DiamondBlock.UVs;
+                MaxHealth = DiamondBlock.maxHealth;
+                break;
+            default:
+                if (!isConstructor) blockUVs = AirBlock.UVs;
+                MaxHealth = AirBlock.maxHealth;
+                break;
+        }
+    }
+
     private void CreateQuad(CubeSide side)
     {
         Mesh mesh = new Mesh();
@@ -169,7 +224,7 @@ public class Block {
         // All possible UVs
         Vector2 uv00 , uv10, uv01, uv11;
 
-        if (side == CubeSide.TOP && blockUVs.GetLength(0) >= 2)
+        if ((side == CubeSide.TOP && blockUVs.GetLength(0) >= 2) || (side == CubeSide.BOTTOM && blockUVs.GetLength(0) == 2))
         {
             uv00 = blockUVs[1, 0];
             uv10 = blockUVs[1, 1];
@@ -293,9 +348,10 @@ public class Block {
         owner.Redraw();
     }
 
-    public void SetType(BlockType b)
+    public void SetType(BlockType b, bool isConstructor)
     {
         bType = b;
+        SetTypeData(b, isConstructor);
         isSolid = (bType == BlockType.AIR || bType == BlockType.WATER) ? false : true;
         parent = (bType == BlockType.WATER) ? owner.fluid.gameObject : owner.chunk.gameObject;
         health = HealthType.NOCRACK;
@@ -308,7 +364,7 @@ public class Block {
         else if (b == BlockType.SAND) World.Queue.Run(owner.mb.Drop(this, BlockType.SAND, 20));
         else
         {
-            SetType(b);
+            SetType(b, false);
             owner.Redraw();
         }
         return true;
@@ -325,7 +381,7 @@ public class Block {
         if (curHealth <= 0)
         {
             if (bType == BlockType.SAND && pos.y == World.chunkSize - 1) GetBlock((int)pos.x, (int)pos.y + 1, (int)pos.z).owner.UpdateChunk();
-            SetType(BlockType.AIR);
+            SetType(BlockType.AIR, false);
             owner.Redraw();
             owner.UpdateChunk();
             return true;
@@ -351,6 +407,6 @@ public class Block {
         this.pos = pos;
         parent = p;
         owner = c;
-        SetType(b);
+        SetType(b, true);
     }
 }

@@ -122,9 +122,9 @@ public class Chunk {
                     }
                     else if (worldY == surfaceHeight)
                     {
-                        // if (Utils.fBM3D(worldX, worldY, worldZ, 0.175f, 2) < 0.35f && worldY >= 65) chunkData[x, y, z] = new Block(Block.BlockType.WOODBASE, pos, chunk.gameObject, this);
-                        // else chunkData[x, y, z] = new GrassBlock(pos, chunk.gameObject, this);
-                        chunkData[x, y, z] = new GrassBlock(pos, chunk.gameObject, this);
+                        if (Utils.fBM3D(worldX, worldY, worldZ, 0.175f, 2) < 0.35f && worldY >= 65) chunkData[x, y, z] = new TreeBlock(TreeBlock.TreeType.PINE, false, true, pos, chunk.gameObject, this);
+                        else chunkData[x, y, z] = new GrassBlock(pos, chunk.gameObject, this);
+                        // chunkData[x, y, z] = new GrassBlock(pos, chunk.gameObject, this);
                     }
                     else if (worldY < surfaceHeight) chunkData[x, y, z] = new DirtBlock(pos, chunk.gameObject, this);
                     else chunkData[x, y, z] = new AirBlock(pos, chunk.gameObject, this);
@@ -146,12 +146,12 @@ public class Chunk {
         Block t = trunk.GetBlock(x, y + 1, z);
         if (t != null)
         {
-            t.SetType(Block.BlockType.WOOD);
+            t.SetType(Block.BlockType.WOOD, false);
 
             Block t1 = t.GetBlock(x, y + 2, z);
             if (t1 != null)
             {
-                t1.SetType(Block.BlockType.WOOD);
+                t1.SetType(Block.BlockType.WOOD, false);
                 for (int i = -1; i <= 1; i++)
                 {
                     for (int j = -1; j <= 1; j++)
@@ -161,7 +161,7 @@ public class Chunk {
                             Block t2 = trunk.GetBlock(x + i, y + k, z + j);
                             if (t2 != null)
                             {
-                                if (t2.bType == Block.BlockType.AIR) t2.SetType(Block.BlockType.LEAVES);
+                                if (t2.bType == Block.BlockType.AIR) t2.SetType(Block.BlockType.LEAVES, false);
                                 if ((t2.Owner != t1.Owner) && t2.Owner.treesCreated) t2.Owner.Redraw();
                             }
                         }
@@ -171,7 +171,7 @@ public class Chunk {
                 Block t3 = t.GetBlock(x, y + 5, z);
                 if (t3 != null)
                 {
-                    if (t3.bType == Block.BlockType.AIR) t3.SetType(Block.BlockType.LEAVES);
+                    if (t3.bType == Block.BlockType.AIR) t3.SetType(Block.BlockType.LEAVES, false);
                     if ((t3.Owner != t1.Owner) && t3.Owner.treesCreated) t3.Owner.Redraw();
                 }
                 if ((t1.Owner != t.Owner) && t1.Owner.treesCreated) t1.Owner.Redraw();
@@ -306,7 +306,7 @@ public class Chunk {
         fluidMat = t;
 
         changed = false;
-        treesCreated = true;
+        treesCreated = false;
 
         BuildChunk();
     }

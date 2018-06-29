@@ -30,7 +30,7 @@ public class ChunkMB : MonoBehaviour {
         if (strength <= 0) yield break;
         if (b.bType != Block.BlockType.AIR) yield break;
 
-        b.SetType(bt);
+        b.SetType(bt, false);
         b.CurHealth = strength;
         b.Owner.Redraw();
         yield return new WaitForSeconds(1);
@@ -80,10 +80,10 @@ public class ChunkMB : MonoBehaviour {
         {
             Block.BlockType prevT = thisB.bType;
 
-            if (prevT != bt) thisB.SetType(bt);
+            if (prevT != bt) thisB.SetType(bt, false);
             if (prevB != null)
             {
-                prevB.SetType(prevT);
+                prevB.SetType(prevT, false);
                 if (thisB.Owner != prevB.Owner)
                 {
                     pos = prevB.Pos;
